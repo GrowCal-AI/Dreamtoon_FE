@@ -1,13 +1,13 @@
 import { create } from 'zustand'
 import { EmotionType, DreamStyle, DreamAnalysis } from '@/types'
 
-export type ChatStep = 0 | 1 | 2 | 3 | 4 | 5
+export type ChatStep = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
 export interface Message {
     id: string
     role: 'ai' | 'user'
     content: string
-    type?: 'text' | 'emotion' | 'style' | 'analysis'
+    type?: 'text' | 'emotion' | 'style' | 'analysis' | 'format'
     timestamp: Date
 }
 
@@ -17,6 +17,7 @@ interface ChatStore {
     selectedEmotion: EmotionType | null
     dreamContent: string
     analysisResult: DreamAnalysis | null
+    selectedFormat: 'webtoon' | 'animation' | null
     selectedStyle: DreamStyle | null
     isAnalyzing: boolean
     isGenerating: boolean
@@ -30,6 +31,7 @@ interface ChatStore {
     selectEmotion: (emotion: EmotionType) => void
     setDreamContent: (content: string) => void
     setAnalysisResult: (result: DreamAnalysis) => void
+    selectFormat: (format: 'webtoon' | 'animation') => void
     selectStyle: (style: DreamStyle) => void
     setIsAnalyzing: (isAnalyzing: boolean) => void
     setIsGenerating: (isGenerating: boolean) => void
@@ -45,6 +47,7 @@ export const useChatStore = create<ChatStore>((set) => ({
     selectedEmotion: null,
     dreamContent: '',
     analysisResult: null,
+    selectedFormat: null,
     selectedStyle: null,
     isAnalyzing: false,
     isGenerating: false,
@@ -68,6 +71,7 @@ export const useChatStore = create<ChatStore>((set) => ({
     selectEmotion: (emotion) => set({ selectedEmotion: emotion }),
     setDreamContent: (content) => set({ dreamContent: content }),
     setAnalysisResult: (result) => set({ analysisResult: result }),
+    selectFormat: (format) => set({ selectedFormat: format }),
     selectStyle: (style) => set({ selectedStyle: style }),
     setIsAnalyzing: (isAnalyzing) => set({ isAnalyzing }),
 
@@ -83,15 +87,12 @@ export const useChatStore = create<ChatStore>((set) => ({
         selectedEmotion: null,
         dreamContent: '',
         analysisResult: null,
+        selectedFormat: null,
         selectedStyle: null,
         isAnalyzing: false,
         isGenerating: false,
         isSaved: false,
         showPremiumModal: false,
-        // Do not reset isPremium to simulate persistence if desired,
-        // but usually reset clears session. Let's keep isPremium if already set?
-        // Prompt implies session-based but let's clear for "New Chat" logic unless user stays logged in.
-        // For now, reset everything for a clean new chat start as per "New Chat" requirement.
         isPremium: false,
     }),
 }))

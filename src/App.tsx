@@ -6,10 +6,13 @@ import WebtoonViewPage from './pages/WebtoonViewPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import LibraryPage from './pages/LibraryPage'
 
+import LoginPage from './pages/LoginPage'
+
 function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/login" element={<LoginPage />} />
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="input" element={<DreamInputPage />} />

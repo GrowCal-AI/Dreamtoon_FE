@@ -2,7 +2,7 @@
 export type EmotionType = 'joy' | 'anxiety' | 'anger' | 'sadness' | 'surprise' | 'peace'
 
 // 꿈 스타일 프리셋
-export type DreamStyle = 'romance' | 'school' | 'dark-fantasy' | 'healing' | 'comedy' | 'horror'
+export type DreamStyle = 'romance' | 'school' | 'dark-fantasy' | 'healing' | 'comedy' | 'horror' | 'pixar' | 'ghibli' | 'cyberpunk' | 'cinematic' | 'vintage'
 
 // 꿈 장면 컷
 export interface DreamScene {
@@ -52,6 +52,7 @@ export interface DreamEntry {
   createdAt: Date
   inputMethod: 'text' | 'voice'
   style: DreamStyle
+  format: 'webtoon' | 'animation'
   scenes: DreamScene[]
   analysis: DreamAnalysis
   webtoonUrl?: string
