@@ -10,9 +10,10 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<HomePage />} />
+        <Route element={<Layout />}>
+          <Route path="/" element={<HomePage />} />
           <Route path="input" element={<DreamInputPage />} />
+          <Route path="chat" element={<DreamInputPage />} />
           <Route path="webtoon/:id" element={<WebtoonViewPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="library" element={<LibraryPage />} />

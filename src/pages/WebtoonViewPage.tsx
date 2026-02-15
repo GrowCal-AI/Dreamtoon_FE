@@ -144,7 +144,7 @@ export default function WebtoonViewPage() {
   }
 
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-full py-8 px-4 pb-24">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <motion.div
@@ -169,11 +169,10 @@ export default function WebtoonViewPage() {
                 className="p-2 rounded-lg hover:bg-purple-50 transition-colors"
               >
                 <Heart
-                  className={`w-6 h-6 ${
-                    dream.isFavorite
+                  className={`w-6 h-6 ${dream.isFavorite
                       ? 'fill-red-500 text-red-500'
                       : 'text-gray-400'
-                  }`}
+                    }`}
                 />
               </motion.button>
               <motion.button

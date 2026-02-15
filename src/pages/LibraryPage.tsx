@@ -110,7 +110,7 @@ export default function LibraryPage() {
   }, [dreams, searchQuery, filterStyle, showFavorites, sortBy])
 
   return (
-    <div className="min-h-screen py-12 px-4">
+    <div className="min-h-full py-12 px-4 pb-24">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -149,11 +149,10 @@ export default function LibraryPage() {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => setShowFavorites(!showFavorites)}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                showFavorites
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${showFavorites
                   ? 'bg-red-100 text-red-700 border-2 border-red-300'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+                }`}
             >
               <Heart className="w-4 h-4 inline mr-1" />
               즐겨찾기

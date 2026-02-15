@@ -1,0 +1,34 @@
+import { Link, useLocation } from 'react-router-dom'
+import { Home, Library, BarChart3, User } from 'lucide-react'
+
+export default function BottomNavigation() {
+    const location = useLocation()
+
+    const navItems = [
+        { path: '/', icon: Home, label: '홈' },
+        { path: '/library', icon: Library, label: '보관함' },
+        { path: '/analytics', icon: BarChart3, label: '분석' },
+        { path: '/profile', icon: User, label: '내 정보' },
+    ]
+
+    return (
+        <nav className="glass-effect border-t border-white/20 pb-safe pt-2 px-6">
+            <div className="flex justify-between items-center max-w-md mx-auto h-16">
+                {navItems.map((item) => {
+                    const isActive = location.pathname === item.path
+                    return (
+                        <Link
+                            key={item.path}
+                            to={item.path}
+                            className={`flex flex-col items-center gap-1 transition-colors duration-200 ${isActive ? 'text-purple-600' : 'text-gray-400 hover:text-gray-600'
+                                }`}
+                        >
+                            <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                            <span className="text-[10px] font-medium">{item.label}</span>
+                        </Link>
+                    )
+                })}
+            </div>
+        </nav>
+    )
+}
