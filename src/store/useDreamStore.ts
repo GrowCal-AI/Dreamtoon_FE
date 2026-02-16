@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { DreamEntry, DreamHealthIndex, UserProfile } from '@/types'
+import { DreamEntry, UserProfile } from '@/types'
+import { mockDreams } from '@/utils/mockData'
 
 interface DreamStore {
   // State
@@ -23,7 +24,7 @@ interface DreamStore {
 
 export const useDreamStore = create<DreamStore>((set) => ({
   // Initial state
-  dreams: [],
+  dreams: mockDreams,
   currentDream: null,
   userProfile: null,
   isLoading: false,

@@ -6,6 +6,14 @@ export default {
   ],
   theme: {
     extend: {
+      // 1. 타입페이스 추가 (Pretendard)
+      fontFamily: {
+        pretendard: ['Pretendard', 'sans-serif'],
+      },
+      // 2. 글로우 박스 섀도우 추가
+      boxShadow: {
+        'glow': '0 0 20px rgba(139, 92, 246, 0.4)', // dream-purple 색상 기반
+      },
       colors: {
         primary: {
           50: '#f0f9ff',

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Mic, Send, Sparkles, Loader2, Save, RotateCcw, MessageCircle, Check, X, ChevronRight, Layout, PlayCircle } from 'lucide-react'
+import { Mic, Send, Sparkles, Loader2, Save, RotateCcw, MessageCircle, X, ChevronRight, Layout, PlayCircle } from 'lucide-react'
 import { useChatStore } from '@/store/useChatStore'
 import { useDreamStore } from '@/store/useDreamStore'
 import { useAuthStore } from '@/store/useAuthStore'
 import LoginModal from '@/components/common/LoginModal'
-import { EmotionType, DreamStyle, DreamEntry } from '@/types'
+import { EmotionType, DreamStyle, DreamEntry, DreamScene } from '@/types'
 import {
   Radar,
   RadarChart,
@@ -19,26 +19,23 @@ import {
 // --- Components ---
 
 const EmotionChip = ({
-  emotion,
   label,
   emoji,
-  color,
   onClick,
 }: {
   emotion: EmotionType
   label: string
   emoji: string
-  color: string
   onClick: () => void
 }) => (
   <motion.button
-    whileHover={{ scale: 1.05, backgroundColor: color }}
+    whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
     whileTap={{ scale: 0.95 }}
     onClick={onClick}
-    className="flex flex-col items-center justify-center p-4 rounded-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all w-24 h-24"
+    className="flex flex-col items-center justify-center p-4 rounded-full glass-card hover:bg-white/10 transition-all w-24 h-24"
   >
     <span className="text-3xl mb-1">{emoji}</span>
-    <span className="text-xs font-medium text-gray-600">{label}</span>
+    <span className="text-xs font-medium text-gray-200">{label}</span>
   </motion.button>
 )
 
@@ -54,32 +51,32 @@ const AnalysisDashboard = ({ analysis }: { analysis: any }) => {
   ]
 
   return (
-    <div className="w-full max-w-md bg-white/50 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
-      <h3 className="text-lg font-bold text-gray-800 mb-4 text-center">
+    <div className="w-full max-w-md glass-card p-6">
+      <h3 className="text-lg font-bold text-white mb-4 text-center">
         꿈 감정 분석
       </h3>
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
-            <PolarGrid stroke="#e5e7eb" />
-            <PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 12 }} />
+            <PolarGrid stroke="rgba(255,255,255,0.1)" />
+            <PolarAngleAxis dataKey="subject" tick={{ fill: '#9ca3af', fontSize: 12 }} />
             <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
             <Radar
               name="My Dream"
               dataKey="A"
               stroke="#8b5cf6"
               fill="#8b5cf6"
-              fillOpacity={0.5}
+              fillOpacity={0.6}
             />
           </RadarChart>
         </ResponsiveContainer>
       </div>
 
-      <div className="mt-4 p-4 bg-purple-50 rounded-xl border border-purple-100">
+      <div className="mt-4 p-4 bg-purple-500/10 rounded-xl border border-purple-500/20">
         <div className="flex items-start gap-3">
-          <Sparkles className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-gray-700 leading-relaxed">
-            무의식 속에 <span className="font-bold text-purple-700">불안감</span>이
+          <Sparkles className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-gray-200 leading-relaxed">
+            무의식 속에 <span className="font-bold text-purple-400">불안감</span>이
             높게 나타나고 있어요. 현실에서의 스트레스가 꿈에 반영된 것 같아요.
             잠시 휴식을 취하는 건 어떨까요?
           </p>
@@ -90,7 +87,6 @@ const AnalysisDashboard = ({ analysis }: { analysis: any }) => {
 }
 
 const StyleCard = ({
-  style,
   label,
   desc,
   onClick,
@@ -108,20 +104,20 @@ const StyleCard = ({
     onClick={onClick}
     whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
-    className={`relative p-4 rounded-xl text-left transition-all border-2 overflow-hidden ${selected
-      ? 'border-purple-500 bg-purple-50 shadow-md'
-      : 'border-transparent bg-white hover:border-purple-200'
+    className={`relative p-4 rounded-xl text-left transition-all border overflow-hidden glass-card ${selected
+      ? 'border-purple-500 bg-purple-500/20 shadow-glow'
+      : 'border-white/10 hover:border-purple-400/50'
       }`}
   >
     {isPremium && (
-      <div className="absolute top-0 right-0 bg-gradient-to-bl from-amber-400 to-orange-400 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg shadow-sm z-10">
+      <div className="absolute top-0 right-0 bg-gradient-to-bl from-amber-400 to-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg shadow-sm z-10">
         PRO
       </div>
     )}
-    <div className="font-bold text-gray-800 flex items-center gap-1">
+    <div className="font-bold text-white flex items-center gap-1">
       {label}
     </div>
-    <div className="text-xs text-gray-500">{desc}</div>
+    <div className="text-xs text-gray-400">{desc}</div>
   </motion.button>
 )
 
@@ -149,44 +145,54 @@ const ANIMATION_STYLES = [
 ]
 // --- Post-Generation Components ---
 
-const SubscriptionModal = ({ onClose, onSubscribe }: { onClose: () => void, onSubscribe: () => void }) => (
+const SubscriptionModal = ({
+  onClose,
+  onSubscribe,
+  title,
+  description,
+  benefits,
+  buttonText
+}: {
+  onClose: () => void,
+  onSubscribe: () => void,
+  title: React.ReactNode,
+  description: React.ReactNode,
+  benefits: string[],
+  buttonText: string
+}) => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
-    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
   >
     <motion.div
       initial={{ scale: 0.9, y: 20 }}
       animate={{ scale: 1, y: 0 }}
       exit={{ scale: 0.9, y: 20 }}
-      className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl relative overflow-hidden text-center"
+      className="bg-[#1A1638] border border-white/10 rounded-3xl p-8 w-full max-w-sm shadow-2xl relative overflow-hidden text-center"
     >
-      <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-br from-teal-400/20 to-purple-500/20 opacity-50 pointer-events-none" />
-      <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-20">
+      <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-br from-teal-400/20 to-purple-500/20 opacity-30 pointer-events-none" />
+      <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-20">
         <X size={24} />
       </button>
 
       <div className="relative z-10 pt-2">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-teal-400 to-emerald-500 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-teal-200 animate-pulse">
+        <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-teal-400 to-emerald-500 flex items-center justify-center mx-auto mb-6 shadow-glow animate-pulse">
           <Sparkles className="w-10 h-10 text-white" />
         </div>
 
-        <h2 className="text-2xl font-bold text-gray-900 mb-3 leading-tight">
-          프리미엄 스타일로<br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-emerald-600">꿈을 더 생생하게</span> 그려보세요
+        <h2 className="text-2xl font-bold text-white mb-3 leading-tight">
+          {title}
         </h2>
 
-        <p className="text-gray-600 text-sm leading-relaxed mb-6 px-1">
-          지브리, 픽사, 시네마틱 실사 등<br />
-          고퀄리티 프리미엄 화풍은 구독 서비스를 통해<br />
-          무제한으로 이용하실 수 있습니다.<br />
-          <span className="font-semibold text-gray-800">지금 바로 당신의 꿈을 영화처럼 만들어보세요!</span>
+        <p className="text-gray-300 text-sm leading-relaxed mb-6 px-1">
+          {description}
         </p>
 
         <div className="flex flex-wrap justify-center gap-2 mb-8">
-          {['✨ 고해상도 렌더링', '🎨 프리미엄 전용 화풍 10종', '🚫 워터마크 제거'].map((tag, i) => (
-            <span key={i} className="px-3 py-1.5 bg-gray-100/80 text-gray-600 text-xs font-semibold rounded-lg border border-gray-200/50">
+          {benefits.map((tag, i) => (
+            <span key={i} className="px-3 py-1.5 bg-white/5 text-gray-300 text-xs font-semibold rounded-lg border border-white/10">
               {tag}
             </span>
           ))}
@@ -195,14 +201,14 @@ const SubscriptionModal = ({ onClose, onSubscribe }: { onClose: () => void, onSu
         <div className="space-y-3">
           <button
             onClick={onSubscribe}
-            className="w-full py-4 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-bold shadow-lg shadow-teal-200/50 hover:shadow-teal-300/50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            className="w-full py-4 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-bold shadow-lg shadow-teal-500/30 hover:shadow-teal-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
             <Sparkles size={18} />
-            구독하고 프리미엄 스타일로 시작하기
+            {buttonText}
           </button>
           <button
             onClick={onClose}
-            className="w-full py-3 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-gray-600 font-medium text-sm transition-colors"
+            className="w-full py-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white font-medium text-sm transition-colors"
           >
             나중에 하기
           </button>
@@ -228,16 +234,16 @@ const GenerationResult = ({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
-      className="bg-white rounded-3xl overflow-hidden shadow-xl border border-gray-100"
+      className="glass-card overflow-hidden"
     >
       {/* Webtoon Image Area */}
-      <div className="aspect-[3/4] bg-gray-200 relative group overflow-hidden">
+      <div className="aspect-[3/4] bg-gray-800 relative group overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1633469924738-52101af51d87?q=80&w=1000&auto=format&fit=crop"
           alt="Dream Webtoon"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-6">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-6">
           <span className="text-white/80 text-xs font-medium uppercase tracking-wider mb-2">Today's Dream</span>
           <h2 className="text-white text-2xl font-bold leading-tight">무의식의 숲을 지나서</h2>
         </div>
@@ -256,10 +262,10 @@ const GenerationResult = ({
             >
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-bold text-gray-800 text-lg">오늘의 꿈 웹툰 완성!</h3>
-                  <span className="text-xs text-gray-500">{new Date().toLocaleDateString()}</span>
+                  <h3 className="font-bold text-white text-lg">오늘의 꿈 웹툰 완성!</h3>
+                  <span className="text-xs text-gray-400">{new Date().toLocaleDateString()}</span>
                 </div>
-                <p className="text-sm text-gray-600 leading-relaxed">
+                <p className="text-sm text-gray-300 leading-relaxed">
                   당신의 무의식이 그려낸 특별한 이야기입니다.<br />
                   이 꿈을 보관함에 저장하거나, 더 깊은 대화를 나눠보세요.
                 </p>
@@ -267,9 +273,9 @@ const GenerationResult = ({
 
               <button
                 onClick={onSave}
-                className="w-full py-3.5 rounded-xl border border-gray-200 hover:border-purple-200 hover:bg-purple-50 text-gray-700 font-semibold transition-all flex items-center justify-center gap-2 group"
+                className="w-full py-3.5 rounded-xl border border-white/20 hover:border-purple-500 hover:bg-purple-500/10 text-white font-semibold transition-all flex items-center justify-center gap-2 group"
               >
-                <Save size={18} className="text-gray-500 group-hover:text-purple-600 transition-colors" />
+                <Save size={18} className="text-gray-400 group-hover:text-purple-400 transition-colors" />
                 라이브러리에 등록하기
               </button>
             </motion.div>
@@ -304,15 +310,15 @@ const GenerationResult = ({
                 </svg>
               </div>
               <div className="text-center">
-                <h3 className="text-xl font-bold text-teal-500 mb-1">라이브러리 저장 성공!</h3>
-                <p className="text-sm text-gray-500">당신의 소중한 꿈이 안전하게 보관되었습니다.</p>
+                <h3 className="text-xl font-bold text-teal-400 mb-1">라이브러리 저장 성공!</h3>
+                <p className="text-sm text-gray-400">당신의 소중한 꿈이 안전하게 보관되었습니다.</p>
               </div>
               <motion.button
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
-                onClick={() => window.location.href = '/library'} // Should be useNavigate in real app context if available or passed down
-                className="absolute bottom-6 right-6 flex items-center gap-1 text-sm font-medium text-gray-400 hover:text-teal-500 hover:underline hover:underline-offset-4 transition-all"
+                onClick={() => window.location.href = '/library'}
+                className="absolute bottom-6 right-6 flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-teal-400 hover:underline hover:underline-offset-4 transition-all"
               >
                 라이브러리 가기
                 <ChevronRight size={14} />
@@ -324,31 +330,27 @@ const GenerationResult = ({
     </motion.div>
 
     {/* External Floating CTA Buttons */}
-    <AnimatePresence>
-      {isSaved && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="flex gap-3 pt-2"
-        >
-          <button
-            onClick={onReset}
-            className="flex-1 py-4 rounded-2xl bg-white shadow-lg shadow-gray-200 border border-gray-100 text-gray-600 font-semibold hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
-          >
-            <RotateCcw size={18} />
-            새로운 채팅
-          </button>
-          <button
-            onClick={onTalkMore}
-            className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold shadow-lg shadow-purple-200 hover:shadow-purple-300 transition-all flex items-center justify-center gap-2"
-          >
-            <MessageCircle size={18} />
-            꿈 더 대화하기
-          </button>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 }}
+      className="flex gap-3 pt-2"
+    >
+      <button
+        onClick={onReset}
+        className="flex-1 py-4 rounded-2xl bg-white/5 border border-white/10 text-gray-300 font-semibold hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2 backdrop-blur-sm"
+      >
+        <RotateCcw size={18} />
+        새로운 채팅
+      </button>
+      <button
+        onClick={onTalkMore}
+        className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold shadow-glow hover:shadow-purple-500/50 transition-all flex items-center justify-center gap-2"
+      >
+        <MessageCircle size={18} />
+        꿈 더 대화하기
+      </button>
+    </motion.div>
   </div>
 )
 
@@ -360,9 +362,13 @@ export default function DreamInputPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  const [modalType, setModalType] = useState<'style' | 'deep_chat'>('style') // Added modalType state
+
+  // State for pending save actions
+  const [pendingSave, setPendingSave] = useState(false)
 
   const { addDream } = useDreamStore()
-  const { isLoggedIn, login } = useAuthStore()
+  const { isLoggedIn, login, checkSaveLimit, updateUser } = useAuthStore()
 
   const {
     step,
@@ -370,7 +376,6 @@ export default function DreamInputPage() {
     addMessage,
     setStep,
     selectEmotion,
-    selectedEmotion,
     setDreamContent,
     dreamContent,
     isAnalyzing,
@@ -425,7 +430,6 @@ export default function DreamInputPage() {
     if (!dreamContent.trim()) return
 
     addMessage({ role: 'user', content: dreamContent, type: 'text' })
-    const currentDreamContent = dreamContent // capture for storage if needed
     setDreamContent('')
 
     setIsAnalyzing(true)
@@ -471,6 +475,7 @@ export default function DreamInputPage() {
         // If user is NOT premium, show modal
         console.log('User NOT Premium -> Show Modal')
         setIsGenerating(false)
+        setModalType('style') // Set Type to Style
         setShowPremiumModal(true)
       }
     } else {
@@ -487,45 +492,117 @@ export default function DreamInputPage() {
     }
   }
 
-  const handleSaveDream = () => {
-    if (!isLoggedIn) {
-      setIsLoginModalOpen(true)
+  const executeSave = () => {
+    // Prevent duplicate saves
+    if (isSaved) {
+      console.log("Dream already saved, skipping.")
       return
     }
 
-    // Create Mock Dream Object
-    const newDream: DreamEntry = {
-      id: Date.now().toString(),
-      userId: 'current-user',
-      title: '무의식의 숲을 지나서', // Mock title from result
-      content: messages.find(m => m.role === 'user' && m.type === 'text' && m.content.length > 20)?.content || '꿈 내용', // Simply find long user msg
-      recordedAt: new Date(),
-      createdAt: new Date(),
-      inputMethod: 'text',
-      style: selectedStyle || 'healing',
-      format: selectedFormat || 'webtoon',
-      scenes: [],
-      analysis: {
-        emotions: { joy: 20, anxiety: 60, anger: 10, sadness: 30, surprise: 40, peace: 10 },
-        tensionLevel: 50,
-        controlLevel: 30,
-        isNightmare: false,
-        repeatingSymbols: [],
-        relationshipPatterns: [],
-        hasResolution: false
-      },
-      tags: ['Webtoon', selectedStyle || 'healing'],
-      isFavorite: false,
-      webtoonUrl: 'https://images.unsplash.com/photo-1633469924738-52101af51d87' // Mock URL
+    try {
+      // Check Save Limit
+      const canSave = checkSaveLimit()
+      if (!canSave) {
+        setModalType('style')
+        setShowPremiumModal(true)
+        alert("저장 공간이 부족합니다. 프리미엄으로 업그레이드하세요!")
+        return
+      }
+
+      // Generate Mock Data based on format
+      let mockScenes: DreamScene[] = []
+      let mockWebtoonUrl = ''
+      let mockVideoUrl = ''
+
+      if (selectedFormat === 'webtoon') {
+        mockScenes = [
+          {
+            id: '1',
+            sceneNumber: 1,
+            description: '꿈의 시작',
+            characters: ['나'],
+            emotion: 'surprise',
+            backgroundKeywords: ['안개', '숲'],
+            imageUrl: 'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3',
+            narration: '깊은 안개 속에서 눈을 떴다.'
+          },
+          {
+            id: '2',
+            sceneNumber: 2,
+            description: '감정의 고조',
+            characters: ['나', '그림자'],
+            emotion: 'anxiety',
+            backgroundKeywords: ['어둠'],
+            imageUrl: 'https://images.unsplash.com/photo-1516410541193-62d80d2208a7',
+            dialogue: [{ character: '그림자', text: '왜 도망치는 거지?' }]
+          },
+          {
+            id: '3',
+            sceneNumber: 3,
+            description: '해결과 평온',
+            characters: ['나'],
+            emotion: 'peace',
+            backgroundKeywords: ['빛', '하늘'],
+            imageUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
+            narration: '빛이 쏟아지며 모든 두려움이 사라졌다.'
+          }
+        ]
+        mockWebtoonUrl = 'https://images.unsplash.com/photo-1633469924738-52101af51d87'
+      } else {
+        // Animation
+        mockVideoUrl = 'https://assets.mixkit.co/videos/preview/mixkit-starry-sky-at-night-1077-large.mp4' // Mock video
+      }
+
+      // Create Dream Object
+      const newDream: DreamEntry = {
+        id: Date.now().toString(),
+        userId: 'current-user',
+        title: '무의식의 숲을 지나서',
+        content: messages.find(m => m.role === 'user' && m.type === 'text' && m.content.length > 20)?.content || '꿈 내용',
+        recordedAt: new Date(),
+        createdAt: new Date(),
+        inputMethod: 'text',
+        style: selectedStyle || 'healing',
+        format: selectedFormat || 'webtoon',
+        scenes: mockScenes,
+        analysis: {
+          emotions: { joy: 20, anxiety: 60, anger: 10, sadness: 30, surprise: 40, peace: 10 },
+          tensionLevel: 50,
+          controlLevel: 30,
+          isNightmare: false,
+          repeatingSymbols: [],
+          relationshipPatterns: [],
+          hasResolution: false
+        },
+        tags: [selectedFormat === 'webtoon' ? 'Webtoon' : 'Animation', selectedStyle || 'healing'],
+        isFavorite: false,
+        webtoonUrl: mockWebtoonUrl,
+        videoUrl: mockVideoUrl
+      }
+
+      console.log("Saving Dream:", newDream)
+      console.log("Previous Store State:", useDreamStore.getState().dreams)
+
+      addDream(newDream)
+      updateUser({ monthlySaveCount: (useAuthStore.getState().user?.monthlySaveCount || 0) + 1 })
+      setIsSaved(true)
+      setPendingSave(false)
+
+      console.log("New Store State:", useDreamStore.getState().dreams)
+
+    } catch (error) {
+      console.error("Failed to save dream:", error)
+      alert("저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
     }
+  }
 
-    addDream(newDream)
-    setIsSaved(true)
-
-    // Optional: Show toast or small animation feedback?
-    // User requested "success interaction (check mark animation)". 
-    // Button changes state, which implies success visually. 
-    // Additional global toast could be added here if we had a toast system.
+  const handleSaveDream = () => {
+    if (!isLoggedIn) {
+      setPendingSave(true)
+      setIsLoginModalOpen(true)
+      return
+    }
+    executeSave()
   }
 
   const handleReset = () => {
@@ -545,58 +622,28 @@ export default function DreamInputPage() {
     setIsPremium(true)
     setShowPremiumModal(false)
 
-    // If a style was selected before (but blocked), strictly we might want to auto-continue.
-    // But for now just feedback is enough.
-    alert('프리미엄 구독이 시작되었습니다! 이제 프리미엄 화풍을 사용할 수 있습니다.')
+    // Update user profile
+    updateUser({ subscriptionTier: 'premium' })
+
+    alert('프리미엄 구독이 시작되었습니다! 이제 무제한으로 저장할 수 있습니다.')
+
+    // If pending save existed and was blocked by limit, retry?
+    if (pendingSave) {
+      executeSave()
+    }
   }
 
   const handleLoginSuccess = () => {
     login()
     setIsLoginModalOpen(false)
-    // Retry save after login
-    // We need to call the logic of handleSaveDream again, but bypassing the check?
-    // Actually simpler to just copy the save logic or extract it. 
-    // Since state is preserved, calling handleSaveDream again will work because isLoggedIn is now true (if we set it).
-    // But login() updates store, component re-renders. 
-    // Let's just manually trigger save here to be safe and avoiding race conditions with store update if it's async (Zustand is sync though).
 
-    // We can't easily call handleSaveDream() here if it's closed over the scope and we want to rely on the updated store value *in the next render*.
-    // However, since we update store via login(), the next render will have isLoggedIn=true.
-    // But we want to trigger it *now*.
-
-    // Let's extract the core save logic or just duplicate it for this mock.
-    // For now, I'll direct call handleSaveDream, but I need to ensure isLoggedIn is true when it runs.
-    // Since I called login(), useAuthStore should update. 
-    // But inside this function closure, `isLoggedIn` const is still false.
-
-    // So I will implement the save logic directly here.
-    const newDream: DreamEntry = {
-      id: Date.now().toString(),
-      userId: 'current-user',
-      title: '무의식의 숲을 지나서', // Mock title from result
-      content: messages.find(m => m.role === 'user' && m.type === 'text' && m.content.length > 20)?.content || '꿈 내용',
-      recordedAt: new Date(),
-      createdAt: new Date(),
-      inputMethod: 'text',
-      style: selectedStyle || 'healing',
-      format: selectedFormat || 'webtoon',
-      scenes: [],
-      analysis: {
-        emotions: { joy: 20, anxiety: 60, anger: 10, sadness: 30, surprise: 40, peace: 10 },
-        tensionLevel: 50,
-        controlLevel: 30,
-        isNightmare: false,
-        repeatingSymbols: [],
-        relationshipPatterns: [],
-        hasResolution: false
-      },
-      tags: ['Webtoon', selectedStyle || 'healing'],
-      isFavorite: false,
-      webtoonUrl: 'https://images.unsplash.com/photo-1633469924738-52101af51d87'
+    // Resume pending save
+    if (pendingSave) {
+      // Slight delay to ensure state update
+      setTimeout(() => {
+        executeSave()
+      }, 100)
     }
-
-    addDream(newDream)
-    setIsSaved(true)
   }
 
   // Render Generation View Full Screen or inside Chat?
@@ -609,23 +656,23 @@ export default function DreamInputPage() {
 
   if (step === 6) {
     return (
-      <div className="h-full bg-gray-50/50 relative overflow-y-auto scrollbar-hide">
-        <header className="glass-effect sticky top-0 z-10 px-6 py-4 border-b border-white/20 flex items-center justify-between">
+      <div className="h-full bg-transparent relative overflow-y-auto scrollbar-hide">
+        <header className="fixed top-0 left-0 right-0 z-10 px-6 py-4 border-b border-white/5 bg-[#0F0C29]/80 backdrop-blur-md flex items-center justify-between max-w-[1200px] mx-auto">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-400 to-indigo-500 flex items-center justify-center text-white shadow-md">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-400 to-indigo-500 flex items-center justify-center text-white shadow-glow">
               <Sparkles size={20} />
             </div>
             <div>
-              <h1 className="font-bold text-gray-800 text-sm">Dream AI 도슨트</h1>
-              <div className="text-xs text-purple-600 font-medium">{isGenerating ? '웹툰 생성 중...' : '생성 완료'}</div>
+              <h1 className="font-bold text-white text-sm">Dream AI 도슨트</h1>
+              <div className="text-xs text-purple-400 font-medium">{isGenerating ? '웹툰 생성 중...' : '생성 완료'}</div>
             </div>
           </div>
-          <button onClick={handleReset} className="p-2 rounded-full hover:bg-gray-100 text-gray-500">
+          <button onClick={handleReset} className="p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
             <X size={20} />
           </button>
         </header>
 
-        <div className="flex flex-col items-center justify-center p-6 text-center min-h-full pb-32">
+        <div className="flex flex-col items-center justify-center p-6 text-center min-h-full pb-32 pt-24">
           <AnimatePresence mode="wait">
             {isGenerating ? (
               <motion.div
@@ -636,15 +683,15 @@ export default function DreamInputPage() {
                 className="space-y-6"
               >
                 <div className="relative w-32 h-32 mx-auto">
-                  <div className="absolute inset-0 rounded-full border-4 border-purple-100 animate-pulse" />
+                  <div className="absolute inset-0 rounded-full border-4 border-purple-500/20 animate-pulse" />
                   <div className="absolute inset-0 rounded-full border-4 border-t-purple-500 animate-spin" />
-                  <div className="absolute inset-4 rounded-full bg-purple-50 flex items-center justify-center animate-pulse">
+                  <div className="absolute inset-4 rounded-full bg-purple-500/10 flex items-center justify-center animate-pulse">
                     <Sparkles className="w-12 h-12 text-purple-400" />
                   </div>
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-800 mb-2">무의식을 그리는 중...</h2>
-                  <p className="text-gray-500">당신의 꿈을 웹툰으로 변환하고 있어요</p>
+                  <h2 className="text-xl font-bold text-white mb-2">무의식을 그리는 중...</h2>
+                  <p className="text-gray-400">당신의 꿈을 웹툰으로 변환하고 있어요</p>
                 </div>
               </motion.div>
             ) : (
@@ -652,14 +699,63 @@ export default function DreamInputPage() {
                 key="result"
                 onSave={handleSaveDream}
                 onReset={handleReset}
-                onTalkMore={() => setShowPremiumModal(true)}
+                onTalkMore={() => {
+                  setModalType('deep_chat') // Set Type to Deep Chat
+                  setShowPremiumModal(true)
+                }}
                 isSaved={isSaved}
               />
             )}
           </AnimatePresence>
         </div>
 
-
+        <AnimatePresence>
+          {showPremiumModal && (
+            <SubscriptionModal
+              onClose={() => setShowPremiumModal(false)}
+              onSubscribe={handleSubscribe}
+              title={
+                modalType === 'style' ? (
+                  <>
+                    프리미엄 스타일로<br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-emerald-600">꿈을 더 생생하게</span> 그려보세요
+                  </>
+                ) : (
+                  <>
+                    당신의 무의식,<br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-600">더 깊이 들여다볼까요?</span>
+                  </>
+                )
+              }
+              description={
+                modalType === 'style' ? (
+                  <>
+                    지브리, 픽사, 시네마틱 실사 등<br />
+                    고퀄리티 프리미엄 화풍은 구독 서비스를 통해<br />
+                    무제한으로 이용하실 수 있습니다.<br />
+                    <span className="font-semibold text-gray-800">지금 바로 당신의 꿈을 영화처럼 만들어보세요!</span>
+                  </>
+                ) : (
+                  <>
+                    AI 심리 전문가와 함께하는 1:1 심층 코칭은<br />
+                    프리미엄 전용 서비스입니다. 무의식의 진짜 의미를 분석하고<br />
+                    현실의 고민을 해결하는 맞춤형 가이드를 받아보세요.
+                  </>
+                )
+              }
+              benefits={
+                modalType === 'style'
+                  ? ['✨ 고해상도 렌더링', '🎨 프리미엄 전용 화풍 10종', '🚫 워터마크 제거']
+                  : ['🧠 현실 기반 심층 분석', '📝 개인 맞춤형 액션 플랜', '💬 무제한 대화 기능']
+              }
+              buttonText={
+                modalType === 'style'
+                  ? '구독하고 프리미엄 스타일로 시작하기'
+                  : '구독하고 심층 대화 시작하기'
+              }
+            />
+          )}
+        </AnimatePresence>
 
         <LoginModal
           isOpen={isLoginModalOpen}
@@ -673,25 +769,25 @@ export default function DreamInputPage() {
   // --- Normal Chat View ---
 
   return (
-    <div className="flex flex-col h-full bg-gray-50/50">
+    <div className="flex flex-col h-full bg-transparent">
       {/* Header */}
-      <header className="glass-effect sticky top-0 z-10 px-6 py-4 border-b border-white/20 flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-30 px-6 py-4 border-b border-white/5 bg-[#0F0C29]/80 backdrop-blur-md flex items-center justify-between max-w-[1200px] mx-auto">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-400 to-indigo-500 flex items-center justify-center text-white shadow-md">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-400 to-indigo-500 flex items-center justify-center text-white shadow-glow">
             <Sparkles size={20} />
           </div>
           <div>
-            <h1 className="font-bold text-gray-800 text-sm">Dream AI 도슨트</h1>
+            <h1 className="font-bold text-white text-sm">Dream AI 도슨트</h1>
             <div className="flex items-center gap-1.5">
               <span className={`w-2 h-2 rounded-full ${isAnalyzing ? 'bg-amber-400 animate-pulse' : 'bg-green-400'}`} />
-              <span className="text-xs text-gray-500">{isAnalyzing ? '꿈 분석 중...' : '대화 중'}</span>
+              <span className="text-xs text-gray-300">{isAnalyzing ? '꿈 분석 중...' : '대화 중'}</span>
             </div>
           </div>
         </div>
       </header>
 
       {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 scrollbar-hide space-y-6">
+      <div className="flex-1 overflow-y-auto px-4 py-6 scrollbar-hide space-y-6 pt-24 pb-32">
         {messages.map((msg) => (
           <motion.div
             key={msg.id}
@@ -701,10 +797,10 @@ export default function DreamInputPage() {
           >
             <div
               className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${msg.role === 'user'
-                ? 'bg-white border border-purple-100 text-gray-800 rounded-tr-none'
+                ? 'bg-[#2D2A4A] border border-white/5 text-white rounded-tr-none'
                 : msg.type === 'analysis'
                   ? 'w-full max-w-md bg-transparent shadow-none p-0'
-                  : 'bg-white/80 backdrop-blur-sm border border-white/40 text-gray-800 rounded-tl-none text-sm'
+                  : 'glass-card text-white rounded-tl-none text-sm'
                 }`}
             >
               {msg.type === 'analysis' ? (
@@ -718,9 +814,9 @@ export default function DreamInputPage() {
 
         {isAnalyzing && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-            <div className="bg-white/80 rounded-2xl rounded-tl-none p-4 shadow-sm flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
-              <span className="text-xs text-gray-500">열심히 분석하고 있어요...</span>
+            <div className="glass-card rounded-2xl rounded-tl-none p-4 shadow-sm flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+              <span className="text-xs text-gray-300">열심히 분석하고 있어요...</span>
             </div>
           </motion.div>
         )}
@@ -732,12 +828,12 @@ export default function DreamInputPage() {
             animate={{ opacity: 1, y: 0 }}
             className="grid grid-cols-3 gap-3 max-w-sm mx-auto mt-4"
           >
-            <EmotionChip emotion="joy" label="기쁨" emoji="😊" color="#fef3c7" onClick={() => handleEmotionClick('joy')} />
-            <EmotionChip emotion="anxiety" label="불안" emoji="😰" color="#e9d5ff" onClick={() => handleEmotionClick('anxiety')} />
-            <EmotionChip emotion="anger" label="분노" emoji="😠" color="#fca5a5" onClick={() => handleEmotionClick('anger')} />
-            <EmotionChip emotion="sadness" label="슬픔" emoji="😢" color="#bfdbfe" onClick={() => handleEmotionClick('sadness')} />
-            <EmotionChip emotion="surprise" label="놀람" emoji="😲" color="#fde68a" onClick={() => handleEmotionClick('surprise')} />
-            <EmotionChip emotion="peace" label="평온" emoji="😌" color="#bbf7d0" onClick={() => handleEmotionClick('peace')} />
+            <EmotionChip emotion="joy" label="기쁨" emoji="😊" onClick={() => handleEmotionClick('joy')} />
+            <EmotionChip emotion="anxiety" label="불안" emoji="😰" onClick={() => handleEmotionClick('anxiety')} />
+            <EmotionChip emotion="anger" label="분노" emoji="😠" onClick={() => handleEmotionClick('anger')} />
+            <EmotionChip emotion="sadness" label="슬픔" emoji="😢" onClick={() => handleEmotionClick('sadness')} />
+            <EmotionChip emotion="surprise" label="놀람" emoji="😲" onClick={() => handleEmotionClick('surprise')} />
+            <EmotionChip emotion="peace" label="평온" emoji="😌" onClick={() => handleEmotionClick('peace')} />
           </motion.div>
         )}
 
@@ -752,26 +848,26 @@ export default function DreamInputPage() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => handleFormatSelect('webtoon')}
-              className={`relative overflow-hidden p-6 rounded-2xl border-2 transition-all text-left group bg-white/40 backdrop-blur-sm ${selectedFormat === 'webtoon' ? 'border-teal-400 shadow-[0_0_15px_rgba(45,212,191,0.3)]' : 'border-white/20 hover:border-teal-200'}`}
+              className={`relative overflow-hidden p-6 rounded-2xl border transition-all text-left group glass-card ${selectedFormat === 'webtoon' ? 'border-teal-400 bg-teal-500/10 shadow-glow' : 'border-white/10 hover:border-teal-400/50'}`}
             >
-              <div className={`p-3 rounded-full w-fit mb-4 ${selectedFormat === 'webtoon' ? 'bg-teal-100 text-teal-600' : 'bg-gray-100 text-gray-500 group-hover:bg-teal-50 group-hover:text-teal-500'}`}>
+              <div className={`p-3 rounded-full w-fit mb-4 ${selectedFormat === 'webtoon' ? 'bg-teal-500/20 text-teal-400' : 'bg-white/5 text-gray-400 group-hover:bg-teal-500/10 group-hover:text-teal-400'}`}>
                 <Layout size={24} />
               </div>
-              <h3 className="font-bold text-gray-800 text-lg mb-1">세로 웹툰</h3>
-              <p className="text-gray-500 text-sm">한 칸씩 읽는 몰입감</p>
+              <h3 className="font-bold text-white text-lg mb-1">세로 웹툰</h3>
+              <p className="text-gray-400 text-sm">한 칸씩 읽는 몰입감</p>
             </motion.button>
 
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => handleFormatSelect('animation')}
-              className={`relative overflow-hidden p-6 rounded-2xl border-2 transition-all text-left group bg-white/40 backdrop-blur-sm ${selectedFormat === 'animation' ? 'border-teal-400 shadow-[0_0_15px_rgba(45,212,191,0.3)]' : 'border-white/20 hover:border-teal-200'}`}
+              className={`relative overflow-hidden p-6 rounded-2xl border transition-all text-left group glass-card ${selectedFormat === 'animation' ? 'border-teal-400 bg-teal-500/10 shadow-glow' : 'border-white/10 hover:border-teal-400/50'}`}
             >
-              <div className={`p-3 rounded-full w-fit mb-4 ${selectedFormat === 'animation' ? 'bg-teal-100 text-teal-600' : 'bg-gray-100 text-gray-500 group-hover:bg-teal-50 group-hover:text-teal-500'}`}>
+              <div className={`p-3 rounded-full w-fit mb-4 ${selectedFormat === 'animation' ? 'bg-teal-500/20 text-teal-400' : 'bg-white/5 text-gray-400 group-hover:bg-teal-500/10 group-hover:text-teal-400'}`}>
                 <PlayCircle size={24} />
               </div>
-              <h3 className="font-bold text-gray-800 text-lg mb-1">쇼츠 애니메이션</h3>
-              <p className="text-gray-500 text-sm">생생하게 움직이는 꿈</p>
+              <h3 className="font-bold text-white text-lg mb-1">쇼츠 애니메이션</h3>
+              <p className="text-gray-400 text-sm">생생하게 움직이는 꿈</p>
             </motion.button>
           </motion.div>
         )}
@@ -804,7 +900,7 @@ export default function DreamInputPage() {
                 className="max-w-md mx-auto mt-4 space-y-6"
               >
                 <div>
-                  <h3 className="text-sm font-bold text-gray-500 mb-3 ml-1">Basic Styles</h3>
+                  <h3 className="text-sm font-bold text-gray-400 mb-3 ml-1">Basic Styles</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {ANIMATION_STYLES.filter(s => !s.isPremium).map((s) => (
                       <StyleCard
@@ -855,17 +951,56 @@ export default function DreamInputPage() {
           <SubscriptionModal
             onClose={() => setShowPremiumModal(false)}
             onSubscribe={handleSubscribe}
+            title={
+              modalType === 'style' ? (
+                <>
+                  프리미엄 스타일로<br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-emerald-600">꿈을 더 생생하게</span> 그려보세요
+                </>
+              ) : (
+                <>
+                  당신의 무의식,<br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-600">더 깊이 들여다볼까요?</span>
+                </>
+              )
+            }
+            description={
+              modalType === 'style' ? (
+                <>
+                  지브리, 픽사, 시네마틱 실사 등<br />
+                  고퀄리티 프리미엄 화풍은 구독 서비스를 통해<br />
+                  무제한으로 이용하실 수 있습니다.<br />
+                  <span className="font-semibold text-gray-800">지금 바로 당신의 꿈을 영화처럼 만들어보세요!</span>
+                </>
+              ) : (
+                <>
+                  AI 심리 전문가와 함께하는 1:1 심층 코칭은<br />
+                  프리미엄 전용 서비스입니다. 무의식의 진짜 의미를 분석하고<br />
+                  현실의 고민을 해결하는 맞춤형 가이드를 받아보세요.
+                </>
+              )
+            }
+            benefits={
+              modalType === 'style'
+                ? ['✨ 고해상도 렌더링', '🎨 프리미엄 전용 화풍 10종', '🚫 워터마크 제거']
+                : ['🧠 현실 기반 심층 분석', '📝 개인 맞춤형 액션 플랜', '💬 무제한 대화 기능']
+            }
+            buttonText={
+              modalType === 'style'
+                ? '구독하고 프리미엄 스타일로 시작하기'
+                : '구독하고 심층 대화 시작하기'
+            }
           />
         )}
       </AnimatePresence>
 
       {/* Input Area (Bottom) */}
-      <div className="p-4 bg-white border-t border-purple-100 sticky bottom-0 z-20 pb-8">
+      <div className="p-4 bg-[#0F0C29]/90 backdrop-blur-md border-t border-white/10 fixed bottom-0 left-0 right-0 z-20 pb-8 max-w-[1200px] mx-auto">
         <form
           onSubmit={handleContentSubmit}
-          className="flex items-center gap-2 max-w-3xl mx-auto bg-gray-100/50 rounded-full p-1.5 border border-gray-200 focus-within:ring-2 focus-within:ring-purple-100 transition-all"
+          className="flex items-center gap-2 max-w-3xl mx-auto bg-white/5 rounded-full p-1.5 border border-white/10 focus-within:ring-2 focus-within:ring-purple-500/50 transition-all"
         >
-          <button type="button" className="p-2.5 rounded-full text-gray-400 hover:bg-gray-200 transition-colors">
+          <button type="button" className="p-2.5 rounded-full text-gray-400 hover:bg-white/10 transition-colors">
             <Mic size={20} />
           </button>
           <input
@@ -874,12 +1009,12 @@ export default function DreamInputPage() {
             value={dreamContent}
             onChange={(e) => setDreamContent(e.target.value)}
             placeholder="이야기를 들려주세요..."
-            className="flex-1 bg-transparent border-none outline-none text-sm px-2"
+            className="flex-1 bg-transparent border-none outline-none text-white placeholder-gray-500 text-sm px-2"
           />
           <button
             type="submit"
             disabled={!dreamContent.trim()}
-            className={`p-2.5 rounded-full transition-all ${dreamContent.trim() ? 'bg-purple-600 text-white shadow-md' : 'bg-gray-200 text-gray-400'
+            className={`p-2.5 rounded-full transition-all ${dreamContent.trim() ? 'bg-purple-600 text-white shadow-glow' : 'bg-white/10 text-gray-500'
               }`}
           >
             <Send size={18} />

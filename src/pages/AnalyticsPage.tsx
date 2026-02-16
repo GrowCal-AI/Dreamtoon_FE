@@ -15,7 +15,7 @@ import {
   ResponsiveContainer,
   Tooltip
 } from 'recharts'
-import { Brain, Moon, Star, Cloud, Sun, Zap, Sparkles } from 'lucide-react'
+import { Moon, Star, Cloud, Zap, Sparkles } from 'lucide-react'
 
 // Constants
 const EMOTION_LABELS: Record<string, string> = {

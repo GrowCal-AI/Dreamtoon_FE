@@ -61,7 +61,7 @@ export default function HomePage() {
     <AnimatePresence mode='wait'>
       {!isExiting && (
         <motion.div
-          className="relative flex-1 w-full flex flex-col items-center justify-center bg-transparent text-gray-900"
+          className="relative flex-1 w-full flex flex-col items-center justify-center bg-transparent text-white"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -69,7 +69,7 @@ export default function HomePage() {
         >
           {/* Ambient Background Animation */}
           <motion.div
-            className="fixed top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none z-[-1]"
+            className="fixed top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-600/30 rounded-full mix-blend-screen filter blur-3xl opacity-20 pointer-events-none z-[-1]"
             animate={{
               x: [0, 50, 0],
               y: [0, 30, 0],
@@ -82,7 +82,7 @@ export default function HomePage() {
             }}
           />
           <motion.div
-            className="fixed bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none z-[-1]"
+            className="fixed bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/30 rounded-full mix-blend-screen filter blur-3xl opacity-20 pointer-events-none z-[-1]"
             animate={{
               x: [0, -50, 0],
               y: [0, -30, 0],
@@ -97,21 +97,21 @@ export default function HomePage() {
 
           {/* Hero Section */}
           <motion.div className="z-10 text-center mb-16 px-4" variants={itemVariants}>
-            <h1 className="text-4xl md:text-6xl font-bold mb-4 tracking-tight text-gray-800">
+            <h1 className="text-h1 mb-4 tracking-tight text-white drop-shadow-lg">
               당신의 꿈을 들려주세요
             </h1>
-            <p className="text-lg md:text-xl text-gray-500 font-light">
+            <p className="text-body text-gray-300 font-light">
               무의식이 만든 이야기를 AI가 멋진 웹툰으로 만들어드립니다
             </p>
           </motion.div>
 
           {/* Dream Input Bar */}
           <motion.div className="z-10 w-full max-w-2xl px-6" variants={itemVariants}>
-            <div className="bg-white/80 backdrop-blur-md border border-white/20 shadow-xl rounded-full p-2 flex items-center gap-2">
+            <div className="glass-card p-2 flex items-center gap-2">
               {/* Mic Icon */}
               <motion.button
                 onClick={handleMicClick}
-                className="p-3 rounded-full hover:bg-gray-100/50 text-gray-500 transition-colors"
+                className="p-3 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 animate={{
@@ -133,7 +133,7 @@ export default function HomePage() {
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="어젯밤 꿈 이야기를 해보세요..."
-                className="flex-1 bg-transparent border-none outline-none text-lg text-gray-700 placeholder-gray-400 px-2"
+                className="flex-1 bg-transparent border-none outline-none text-lg text-white placeholder-gray-500 px-2"
               />
 
               {/* Send Icon */}
@@ -141,8 +141,8 @@ export default function HomePage() {
                 onClick={handleSubmit}
                 disabled={!inputText.trim()}
                 className={`p-3 rounded-full transition-all duration-300 ${inputText.trim()
-                  ? 'bg-blue-600 text-white shadow-lg hover:bg-blue-700'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  ? 'bg-purple-600/80 text-white shadow-glow hover:bg-purple-500'
+                  : 'bg-white/10 text-gray-600 cursor-not-allowed'
                   }`}
                 whileHover={inputText.trim() ? { scale: 1.05 } : {}}
                 whileTap={inputText.trim() ? { scale: 0.95 } : {}}

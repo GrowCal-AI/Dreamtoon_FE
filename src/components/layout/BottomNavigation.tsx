@@ -12,7 +12,7 @@ export default function BottomNavigation() {
     ]
 
     return (
-        <nav className="glass-effect border-t border-white/20 pb-safe pt-2 px-6">
+        <nav className="bg-[#0F0C29]/80 backdrop-blur-md border-t border-white/10 pb-safe pt-2 px-6">
             <div className="flex justify-between items-center max-w-md mx-auto h-16">
                 {navItems.map((item) => {
                     const isActive = location.pathname === item.path
@@ -20,7 +20,7 @@ export default function BottomNavigation() {
                         <Link
                             key={item.path}
                             to={item.path}
-                            className={`flex flex-col items-center gap-1 transition-colors duration-200 ${isActive ? 'text-purple-600' : 'text-gray-400 hover:text-gray-600'
+                            className={`flex flex-col items-center gap-1 transition-colors duration-200 ${isActive ? 'text-purple-400' : 'text-gray-500 hover:text-gray-300'
                                 }`}
                         >
                             <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />

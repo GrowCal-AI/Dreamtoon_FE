@@ -14,10 +14,10 @@ const SceneCard = memo(({ scene, index }: { scene: DreamScene; index: number }) 
     transition={{ duration: 0.5, delay: index * 0.1 }}
     className="mb-8"
   >
-    <div className="glass-effect rounded-2xl overflow-hidden">
+    <div className="glass-card overflow-hidden">
       {/* Scene Image */}
-      <div className="aspect-[16/9] bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center relative">
-        <div className="text-center text-gray-600">
+      <div className="aspect-[16/9] bg-gradient-to-br from-[#2D2A4A] to-[#1A1638] flex items-center justify-center relative">
+        <div className="text-center text-gray-500">
           <div className="text-sm font-medium mb-2">Scene {scene.sceneNumber}</div>
           <div className="text-xs px-4">{scene.description}</div>
         </div>
@@ -33,8 +33,8 @@ const SceneCard = memo(({ scene, index }: { scene: DreamScene; index: number }) 
       {/* Scene Content */}
       <div className="p-6">
         {scene.narration && (
-          <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-700 italic">{scene.narration}</p>
+          <div className="mb-4 p-4 bg-white/5 border border-white/10 rounded-lg">
+            <p className="text-sm text-gray-300 italic">{scene.narration}</p>
           </div>
         )}
 
@@ -42,10 +42,10 @@ const SceneCard = memo(({ scene, index }: { scene: DreamScene; index: number }) 
           <div className="space-y-2">
             {scene.dialogue.map((d, i) => (
               <div key={i} className="flex items-start space-x-2">
-                <div className="bg-purple-100 px-3 py-1 rounded-full text-sm font-medium">
+                <div className="bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full text-sm font-medium">
                   {d.character}
                 </div>
-                <div className="bg-white px-4 py-2 rounded-lg shadow-sm flex-1">
+                <div className="bg-[#2D2A4A] border border-white/10 px-4 py-2 rounded-lg shadow-sm flex-1 text-gray-200">
                   {d.text}
                 </div>
               </div>
@@ -58,12 +58,12 @@ const SceneCard = memo(({ scene, index }: { scene: DreamScene; index: number }) 
           {scene.characters.map((char, i) => (
             <span
               key={i}
-              className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm"
+              className="px-3 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-full text-sm"
             >
               {char}
             </span>
           ))}
-          <span className="px-3 py-1 bg-pink-50 text-pink-700 rounded-full text-sm">
+          <span className="px-3 py-1 bg-pink-500/10 text-pink-400 border border-pink-500/20 rounded-full text-sm">
             {scene.emotion}
           </span>
         </div>
@@ -79,7 +79,7 @@ export default function WebtoonViewPage() {
   const navigate = useNavigate()
   const { dreams, toggleFavorite } = useDreamStore()
   const [isPlaying, setIsPlaying] = useState(false)
-  const [currentScene, setCurrentScene] = useState(0)
+
 
   const dream = dreams.find((d) => d.id === id)
 
@@ -131,14 +131,18 @@ export default function WebtoonViewPage() {
     // Auto-scroll simulation
     if (!isPlaying) {
       const interval = setInterval(() => {
-        setCurrentScene((prev) => {
-          if (prev >= scenes.length - 1) {
-            clearInterval(interval)
-            setIsPlaying(false)
-            return prev
-          }
-          return prev + 1
-        })
+        // setCurrentScene((prev) => {
+        //   if (prev >= scenes.length - 1) {
+        //     clearInterval(interval)
+        //     setIsPlaying(false)
+        //     return prev
+        //   }
+        //   return prev + 1
+        // }) 
+        // Logic simplified as we are not using scroll yet but mimicking play state
+        // If we want to simulate playing, we can just toggle off after some time
+        setTimeout(() => setIsPlaying(false), 9000);
+        clearInterval(interval);
       }, 3000)
     }
   }
@@ -150,12 +154,12 @@ export default function WebtoonViewPage() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-effect rounded-2xl p-6 mb-8"
+          className="glass-card p-6 mb-8"
         >
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => navigate('/library')}
-              className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors"
+              className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span>돌아가기</span>
@@ -166,34 +170,34 @@ export default function WebtoonViewPage() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => toggleFavorite(dream.id)}
-                className="p-2 rounded-lg hover:bg-purple-50 transition-colors"
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
               >
                 <Heart
                   className={`w-6 h-6 ${dream.isFavorite
-                      ? 'fill-red-500 text-red-500'
-                      : 'text-gray-400'
+                    ? 'fill-red-500 text-red-500'
+                    : 'text-gray-400'
                     }`}
                 />
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="p-2 rounded-lg hover:bg-purple-50 transition-colors"
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
               >
-                <Share2 className="w-6 h-6 text-gray-600" />
+                <Share2 className="w-6 h-6 text-gray-400" />
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="p-2 rounded-lg hover:bg-purple-50 transition-colors"
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
               >
-                <Download className="w-6 h-6 text-gray-600" />
+                <Download className="w-6 h-6 text-gray-400" />
               </motion.button>
             </div>
           </div>
 
-          <h1 className="text-3xl font-bold mb-2">{dream.title}</h1>
-          <p className="text-gray-600">
+          <h1 className="text-3xl font-bold mb-2 text-white">{dream.title}</h1>
+          <p className="text-gray-400">
             {dream.recordedAt.toLocaleDateString('ko-KR', {
               year: 'numeric',
               month: 'long',
@@ -207,7 +211,7 @@ export default function WebtoonViewPage() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handlePlayPause}
-              className="flex items-center space-x-2 px-6 py-3 dream-gradient text-white rounded-lg font-medium"
+              className="flex items-center space-x-2 px-6 py-3 dream-gradient text-white rounded-lg font-medium shadow-glow"
             >
               {isPlaying ? (
                 <>
@@ -221,7 +225,7 @@ export default function WebtoonViewPage() {
                 </>
               )}
             </motion.button>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-400">
               {scenes.length}개의 장면
             </div>
           </div>
@@ -241,10 +245,10 @@ export default function WebtoonViewPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="glass-effect rounded-2xl p-6 mt-8"
+          className="glass-card p-6 mt-8"
         >
-          <h2 className="text-xl font-semibold mb-4">원본 꿈 내용</h2>
-          <p className="text-gray-700 whitespace-pre-wrap">{dream.content}</p>
+          <h2 className="text-xl font-semibold mb-4 text-white">원본 꿈 내용</h2>
+          <p className="text-gray-300 whitespace-pre-wrap leading-relaxed border-t border-white/10 pt-4">{dream.content}</p>
         </motion.div>
       </div>
     </div>

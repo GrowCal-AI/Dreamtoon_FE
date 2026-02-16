@@ -1,52 +1,75 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    @apply bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 text-gray-900;
-    font-family:
-      -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-      "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-      sans-serif;
+    /* 몽환적인 다크 테마로 변경 */
+    @apply bg-[#0F0C29] text-white font-pretendard antialiased;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 }
 
+@layer components {
+
+  /* 다크 테마용 글래스모피즘 카드 스타일 */
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-[12px] border border-white/10 rounded-[24px] shadow-xl;
+  }
+}
+
 @layer utilities {
+
+  /* 반응형 타이포그래피 스케일 (MO: 375px / PC: 1280px) */
+  .text-h1 {
+    @apply text-[28px] xl:text-[48px] font-bold leading-[1.3];
+  }
+
+  .text-h2 {
+    @apply text-[24px] xl:text-[32px] font-semibold leading-[1.4];
+  }
+
+  .text-body {
+    @apply text-[15px] xl:text-[17px] font-normal leading-[1.6];
+  }
+
+  .text-caption {
+    @apply text-[12px] xl:text-[14px] font-normal leading-[1.5];
+  }
+
   .text-balance {
     text-wrap: balance;
   }
 
-  .glass-effect {
-    @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-xl;
-  }
-
+  /* 기존 그라데이션을 다크 테마에 맞게 유지/조정 */
   .dream-gradient {
     @apply bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500;
   }
 
   .dream-text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-teal-400;
   }
 }
 
-/* 커스텀 스크롤바 */
+/* 커스텀 스크롤바 (다크 테마 최적화) */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(15, 12, 41, 0.1);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.5);
-  border-radius: 4px;
+  background: rgba(168, 85, 247, 0.3);
+  /* dream-purple 계열 */
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.7);
+  background: rgba(168, 85, 247, 0.5);
 }

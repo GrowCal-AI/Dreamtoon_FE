@@ -68,6 +68,8 @@ export interface UserProfile {
   email: string
   createdAt: Date
   dreamCount: number
+  subscriptionTier: 'free' | 'premium'
+  monthlySaveCount: number
   healthIndex: DreamHealthIndex
 }
 

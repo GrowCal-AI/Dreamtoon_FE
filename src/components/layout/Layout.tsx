@@ -8,14 +8,14 @@ export default function Layout() {
   const isFixedPage = ['/', '/input', '/chat'].includes(location.pathname)
 
   return (
-    <div className="flex flex-col h-[100dvh] overflow-hidden bg-gray-50">
+    <div className="flex flex-col h-[100dvh] overflow-hidden bg-transparent">
       {/* Header - Visible only on PC (xl: 1280px+) */}
-      <div className="hidden xl:flex w-full flex-col">
+      <div className="hidden xl:flex w-full flex-col max-w-[1200px] mx-auto px-5">
         <Navigation />
       </div>
 
       <main
-        className={`flex-1 relative flex flex-col ${isFixedPage ? 'overflow-hidden' : 'overflow-y-auto scrollbar-hide'
+        className={`flex-1 relative flex flex-col w-full max-w-[1200px] mx-auto ${isFixedPage ? 'overflow-hidden' : 'overflow-y-auto scrollbar-hide'
           }`}
       >
         <Outlet />
