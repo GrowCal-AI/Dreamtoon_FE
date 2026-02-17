@@ -1,14 +1,13 @@
-import { useState, useMemo, memo } from 'react'
+import { useState, useMemo, memo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Search, Filter, Heart, Calendar, Tag } from 'lucide-react'
+import { Filter, Heart, Calendar } from 'lucide-react'
 import { useDreamStore } from '@/store/useDreamStore'
 import { DreamEntry, DreamStyle } from '@/types'
+import GenerationResult from '@/components/common/GenerationResult'
 
 // Memoized Dream Card
-const DreamCard = memo(({ dream }: { dream: DreamEntry }) => {
-  const navigate = useNavigate()
-
+const DreamCard = memo(({ dream, onClick }: { dream: DreamEntry; onClick: () => void }) => {
   return (
     <motion.div
       layout
@@ -16,22 +15,31 @@ const DreamCard = memo(({ dream }: { dream: DreamEntry }) => {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       whileHover={{ y: -5 }}
-      onClick={() => navigate(`/webtoon/${dream.id}`)}
+      onClick={onClick}
       className="glass-card overflow-hidden cursor-pointer group"
     >
       {/* Thumbnail */}
       <div className="aspect-video bg-gradient-to-br from-[#2D2A4A] to-[#1A1638] relative overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center text-white">
-          <div className="text-center px-4">
-            <div className="text-lg font-semibold mb-2">{dream.title}</div>
-            <div className="text-sm opacity-70">
-              {dream.scenes.length > 0 ? `${dream.scenes.length}개 장면` : '웹툰 생성 완료'}
-            </div>
+        {dream.webtoonUrl || (dream.scenes && dream.scenes.length > 0 && dream.scenes[0].imageUrl) ? (
+          <img
+            src={dream.webtoonUrl || dream.scenes[0].imageUrl}
+            alt={dream.title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : null}
+
+        {/* Overlay for text readability */}
+        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors" />
+
+        <div className="absolute inset-0 flex items-center justify-center text-white p-4">
+          <div className="text-center">
+            <div className="text-lg font-semibold drop-shadow-md">{dream.title}</div>
           </div>
         </div>
         {dream.isFavorite && (
-          <div className="absolute top-3 right-3">
-            <Heart className="w-6 h-6 fill-red-500 text-red-500" />
+          <div className="absolute top-3 right-3 z-10">
+            <Heart className="w-6 h-6 fill-red-500 text-red-500 drop-shadow-md" />
           </div>
         )}
       </div>
@@ -69,23 +77,16 @@ DreamCard.displayName = 'DreamCard'
 
 export default function LibraryPage() {
   const { dreams } = useDreamStore()
-  const [searchQuery, setSearchQuery] = useState('')
+  const navigate = useNavigate()
+  const [selectedDream, setSelectedDream] = useState<DreamEntry | null>(null)
+
+
   const [filterStyle, setFilterStyle] = useState<DreamStyle | 'all'>('all')
   const [showFavorites, setShowFavorites] = useState(false)
-  const [sortBy, setSortBy] = useState<'date' | 'title'>('date')
 
-  // Filtered and sorted dreams (useMemo로 최적화)
+  // Filtered dreams (useMemo)
   const filteredDreams = useMemo(() => {
     let result = [...dreams]
-
-    // Search filter
-    if (searchQuery) {
-      result = result.filter(
-        (dream) =>
-          dream.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          dream.content.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    }
 
     // Style filter
     if (filterStyle !== 'all') {
@@ -97,31 +98,38 @@ export default function LibraryPage() {
       result = result.filter((dream) => dream.isFavorite)
     }
 
-    // Sort
-    result.sort((a, b) => {
-      if (sortBy === 'date') {
-        return b.recordedAt.getTime() - a.recordedAt.getTime()
-      } else {
-        return a.title.localeCompare(b.title)
-      }
-    })
+    // Sort by Date (Default)
+    result.sort((a, b) => b.recordedAt.getTime() - a.recordedAt.getTime())
 
     return result
-  }, [dreams, searchQuery, filterStyle, showFavorites, sortBy])
+  }, [dreams, filterStyle, showFavorites])
+
+  // Body scroll lock
+  useEffect(() => {
+    if (selectedDream) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [selectedDream])
 
   return (
-    <div className="min-h-full py-12 px-4 pb-24">
+    <div className="min-h-full pt-20 pb-24 px-5 xl:pt-28 xl:px-8 relative">
       <div className="max-w-7xl mx-auto">
+        {/* ... (existing content) */}
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className="text-left mb-4 md:mb-8 md:text-center px-1"
         >
-          <h1 className="text-4xl font-bold mb-4">
-            <span className="dream-text-gradient">꿈 라이브러리</span>
+          <h1 className="text-2xl md:text-3xl font-bold text-dream-yellow drop-shadow-sm mb-2 tracking-tight">
+            꿈 라이브러리
           </h1>
-          <p className="text-gray-400">
+          <p className="text-gray-400 text-sm">
             당신이 기록한 모든 꿈을 한눈에 확인하세요
           </p>
         </motion.div>
@@ -131,64 +139,40 @@ export default function LibraryPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="glass-card p-6 mb-8"
+          className="flex flex-wrap items-center justify-end gap-3 mb-8 px-1"
         >
-          {/* Search */}
-          <div className="relative mb-4">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="꿈 제목이나 내용으로 검색..."
-              className="w-full pl-12 pr-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none"
-            />
-          </div>
 
-          {/* Filter Buttons */}
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => setShowFavorites(!showFavorites)}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${showFavorites
-                ? 'bg-red-500/20 text-red-400 border border-red-500/50'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+          <button
+            onClick={() => setShowFavorites(!showFavorites)}
+            className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${showFavorites
+              ? 'bg-red-500/20 text-red-400 border border-red-500/50'
+              : 'glass-card text-gray-400 hover:bg-white/10'
+              }`}
+          >
+            <Heart className={`w-4 h-4 ${showFavorites ? 'fill-current' : ''}`} />
+            즐겨찾기
+          </button>
+
+          <div className="relative group">
+            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-hover:text-gray-300 pointer-events-none" />
+            <select
+              value={filterStyle}
+              onChange={(e) => setFilterStyle(e.target.value as DreamStyle | 'all')}
+              className={`pl-10 pr-8 py-2 rounded-lg font-medium transition-all appearance-none cursor-pointer outline-none ${filterStyle !== 'all'
+                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/50'
+                : 'glass-card text-gray-400 hover:bg-white/10'
                 }`}
             >
-              <Heart className="w-4 h-4 inline mr-1" />
-              즐겨찾기
-            </button>
-
-            <div className="flex items-center space-x-2">
-              <Filter className="w-4 h-4 text-gray-500" />
-              <select
-                value={filterStyle}
-                onChange={(e) => setFilterStyle(e.target.value as DreamStyle | 'all')}
-                className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none"
-              >
-                <option value="all">모든 스타일</option>
-                <option value="romance">로맨스</option>
-                <option value="school">학원물</option>
-                <option value="dark-fantasy">다크 판타지</option>
-                <option value="healing">힐링</option>
-                <option value="comedy">코미디</option>
-                <option value="horror">호러</option>
-              </select>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Tag className="w-4 h-4 text-gray-500" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'date' | 'title')}
-                className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none"
-              >
-                <option value="date">최신순</option>
-                <option value="title">제목순</option>
-              </select>
-            </div>
+              <option value="all">모든 스타일</option>
+              <option value="romance">로맨스</option>
+              <option value="school">학원물</option>
+              <option value="dark-fantasy">다크 판타지</option>
+              <option value="healing">힐링</option>
+              <option value="comedy">코미디</option>
+              <option value="horror">호러</option>
+            </select>
           </div>
         </motion.div>
-
         {/* Dream Count */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -207,9 +191,8 @@ export default function LibraryPage() {
             className="glass-card p-12 text-center"
           >
             <div className="text-gray-500 mb-4">
-              <Search className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg">검색 결과가 없습니다</p>
-              <p className="text-sm mt-2">다른 검색어나 필터를 시도해보세요</p>
+              <p className="text-lg">기록된 꿈이 없습니다</p>
+              <p className="text-sm mt-2">새로운 꿈을 기록해보세요!</p>
             </div>
           </motion.div>
         ) : (
@@ -221,12 +204,41 @@ export default function LibraryPage() {
           >
             <AnimatePresence mode="popLayout">
               {filteredDreams.map((dream) => (
-                <DreamCard key={dream.id} dream={dream} />
+                <DreamCard
+                  key={dream.id}
+                  dream={dream}
+                  onClick={() => setSelectedDream(dream)}
+                />
               ))}
             </AnimatePresence>
           </motion.div>
         )}
       </div>
+
+      {/* Full Screen Generation Result Modal */}
+      <AnimatePresence>
+        {selectedDream && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-[#0F0C29] overflow-y-auto max-h-screen"
+          >
+            <GenerationResult
+              title={selectedDream.title}
+              date={selectedDream.recordedAt.toLocaleDateString('ko-KR')}
+              mediaUrl={selectedDream.webtoonUrl || selectedDream.videoUrl || ''}
+              type={selectedDream.format}
+              isSaved={true}
+              onSave={() => { }}
+              onReset={() => navigate('/')}
+              onTalkMore={() => alert("꿈 대화하기 기능은 준비 중입니다.")}
+              onClose={() => setSelectedDream(null)}
+              initialFavorite={selectedDream.isFavorite}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

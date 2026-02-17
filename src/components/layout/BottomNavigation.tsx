@@ -8,7 +8,7 @@ export default function BottomNavigation() {
         { path: '/', icon: Home, label: '홈' },
         { path: '/library', icon: Library, label: '보관함' },
         { path: '/analytics', icon: BarChart3, label: '분석' },
-        { path: '/profile', icon: User, label: '내 정보' },
+        // { path: '/profile', icon: User, label: '내 정보' },
     ]
 
     return (

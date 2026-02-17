@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Mic, Send, Sparkles, Loader2, Save, RotateCcw, MessageCircle, X, ChevronRight, Layout, PlayCircle } from 'lucide-react'
+import { Mic, Send, Sparkles, Loader2, X, Layout, PlayCircle } from 'lucide-react'
+import GenerationResult from '@/components/common/GenerationResult'
+
 import { useChatStore } from '@/store/useChatStore'
 import { useDreamStore } from '@/store/useDreamStore'
 import { useAuthStore } from '@/store/useAuthStore'
@@ -218,143 +220,6 @@ const SubscriptionModal = ({
   </motion.div>
 )
 
-const GenerationResult = ({
-  onSave,
-  onReset,
-  onTalkMore,
-  isSaved
-}: {
-  onSave: () => void,
-  onReset: () => void,
-  onTalkMore: () => void,
-  isSaved: boolean
-}) => (
-  <div className="w-full max-w-md mx-auto space-y-6">
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className="glass-card overflow-hidden"
-    >
-      {/* Webtoon Image Area */}
-      <div className="aspect-[3/4] bg-gray-800 relative group overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1633469924738-52101af51d87?q=80&w=1000&auto=format&fit=crop"
-          alt="Dream Webtoon"
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-6">
-          <span className="text-white/80 text-xs font-medium uppercase tracking-wider mb-2">Today's Dream</span>
-          <h2 className="text-white text-2xl font-bold leading-tight">무의식의 숲을 지나서</h2>
-        </div>
-      </div>
-
-      {/* Content Area */}
-      <div className="p-6 min-h-[180px] flex flex-col justify-center">
-        <AnimatePresence mode="wait">
-          {!isSaved ? (
-            <motion.div
-              key="unsaved"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="space-y-6"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-bold text-white text-lg">오늘의 꿈 웹툰 완성!</h3>
-                  <span className="text-xs text-gray-400">{new Date().toLocaleDateString()}</span>
-                </div>
-                <p className="text-sm text-gray-300 leading-relaxed">
-                  당신의 무의식이 그려낸 특별한 이야기입니다.<br />
-                  이 꿈을 보관함에 저장하거나, 더 깊은 대화를 나눠보세요.
-                </p>
-              </div>
-
-              <button
-                onClick={onSave}
-                className="w-full py-3.5 rounded-xl border border-white/20 hover:border-purple-500 hover:bg-purple-500/10 text-white font-semibold transition-all flex items-center justify-center gap-2 group"
-              >
-                <Save size={18} className="text-gray-400 group-hover:text-purple-400 transition-colors" />
-                라이브러리에 등록하기
-              </button>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="saved"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: "spring", duration: 0.6 }}
-              className="flex flex-col items-center justify-center space-y-4 py-4"
-            >
-              <div className="relative w-16 h-16">
-                <svg className="w-full h-full" viewBox="0 0 52 52">
-                  <motion.circle
-                    cx="26" cy="26" r="25"
-                    fill="none"
-                    stroke="#2DD4BF"
-                    strokeWidth="2"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 0.5 }}
-                  />
-                  <motion.path
-                    fill="none"
-                    stroke="#2DD4BF"
-                    strokeWidth="2"
-                    d="M14.1 27.2l7.1 7.2 16.7-16.8"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                  />
-                </svg>
-              </div>
-              <div className="text-center">
-                <h3 className="text-xl font-bold text-teal-400 mb-1">라이브러리 저장 성공!</h3>
-                <p className="text-sm text-gray-400">당신의 소중한 꿈이 안전하게 보관되었습니다.</p>
-              </div>
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                onClick={() => window.location.href = '/library'}
-                className="absolute bottom-6 right-6 flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-teal-400 hover:underline hover:underline-offset-4 transition-all"
-              >
-                라이브러리 가기
-                <ChevronRight size={14} />
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.div>
-
-    {/* External Floating CTA Buttons */}
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
-      className="flex gap-3 pt-2"
-    >
-      <button
-        onClick={onReset}
-        className="flex-1 py-4 rounded-2xl bg-white/5 border border-white/10 text-gray-300 font-semibold hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2 backdrop-blur-sm"
-      >
-        <RotateCcw size={18} />
-        새로운 채팅
-      </button>
-      <button
-        onClick={onTalkMore}
-        className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold shadow-glow hover:shadow-purple-500/50 transition-all flex items-center justify-center gap-2"
-      >
-        <MessageCircle size={18} />
-        꿈 더 대화하기
-      </button>
-    </motion.div>
-  </div>
-)
-
-
 // --- Main Page ---
 
 export default function DreamInputPage() {
@@ -366,6 +231,7 @@ export default function DreamInputPage() {
 
   // State for pending save actions
   const [pendingSave, setPendingSave] = useState(false)
+  const initializedRef = useRef(false)
 
   const { addDream } = useDreamStore()
   const { isLoggedIn, login, checkSaveLimit, updateUser } = useAuthStore()
@@ -402,7 +268,8 @@ export default function DreamInputPage() {
 
   // Initial Greeting
   useEffect(() => {
-    if (messages.length === 0 && step === 0) {
+    if (messages.length === 0 && step === 0 && !initializedRef.current) {
+      initializedRef.current = true
       setTimeout(() => {
         addMessage({
           role: 'ai',
@@ -657,22 +524,7 @@ export default function DreamInputPage() {
   if (step === 6) {
     return (
       <div className="h-full bg-transparent relative overflow-y-auto scrollbar-hide">
-        <header className="fixed top-0 left-0 right-0 z-10 px-6 py-4 border-b border-white/5 bg-[#0F0C29]/80 backdrop-blur-md flex items-center justify-between max-w-[1200px] mx-auto">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-400 to-indigo-500 flex items-center justify-center text-white shadow-glow">
-              <Sparkles size={20} />
-            </div>
-            <div>
-              <h1 className="font-bold text-white text-sm">Dream AI 도슨트</h1>
-              <div className="text-xs text-purple-400 font-medium">{isGenerating ? '웹툰 생성 중...' : '생성 완료'}</div>
-            </div>
-          </div>
-          <button onClick={handleReset} className="p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
-            <X size={20} />
-          </button>
-        </header>
-
-        <div className="flex flex-col items-center justify-center p-6 text-center min-h-full pb-32 pt-24">
+        <div className="flex flex-col items-center justify-center p-6 text-center min-h-full pb-32 pt-4">
           <AnimatePresence mode="wait">
             {isGenerating ? (
               <motion.div
@@ -697,6 +549,10 @@ export default function DreamInputPage() {
             ) : (
               <GenerationResult
                 key="result"
+                title="무의식의 숲을 지나서"
+                date={new Date().toLocaleDateString()}
+                mediaUrl="https://images.unsplash.com/photo-1633469924738-52101af51d87?q=80&w=1000&auto=format&fit=crop"
+                type={selectedFormat || 'webtoon'}
                 onSave={handleSaveDream}
                 onReset={handleReset}
                 onTalkMore={() => {
@@ -771,13 +627,13 @@ export default function DreamInputPage() {
   return (
     <div className="flex flex-col h-full bg-transparent">
       {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 scrollbar-hide space-y-6 pt-4 pb-32">
+      <div className="flex-1 overflow-y-auto px-4 py-6 scrollbar-hide space-y-6 pt-24 pb-32">
         {messages.map((msg) => (
           <motion.div
             key={msg.id}
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} ${messages.indexOf(msg) === 0 ? 'mt-4' : ''}`}
           >
             <div
               className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${msg.role === 'user'

@@ -332,7 +332,7 @@ const CoachingSection = ({ stress, emotions }: { stress: number, emotions: any }
       transition={{ delay: 0.4 }}
       className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-8 border border-white/20 min-h-[200px] flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden"
     >
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500" />
+      {/* <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-yellow-500" /> */}
 
       <div className="bg-white/10 p-3 rounded-full mb-2">
         <Sparkles className="w-8 h-8 text-yellow-300" />
@@ -376,15 +376,15 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="min-h-full w-full bg-[#0F0C29] text-white flex flex-col py-12 px-4 pb-32 overflow-y-auto scrollbar-hide">
+    <div className="min-h-full w-full bg-[#0F0C29] text-white flex flex-col pt-20 pb-32 px-5 xl:pt-28 xl:px-8 overflow-y-auto scrollbar-hide">
       <div className="max-w-4xl mx-auto w-full">
         {/* Header */}
         <motion.header
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-10 text-center"
+          className="mb-4 md:mb-8 text-left md:text-center px-1"
         >
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent mb-2">
+          <h1 className="text-2xl md:text-3xl font-bold text-dream-yellow drop-shadow-sm mb-2 tracking-tight">
             Dream Health Analysis
           </h1>
           <p className="text-gray-400 text-sm">

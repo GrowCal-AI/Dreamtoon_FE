@@ -29,7 +29,7 @@ export default {
         },
         dream: {
           purple: '#8B5CF6',
-          pink: '#EC4899',
+          yellow: '#FFFAB5',
           blue: '#3B82F6',
           indigo: '#6366F1',
         },

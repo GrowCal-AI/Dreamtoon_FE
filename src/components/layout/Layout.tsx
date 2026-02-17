@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom'
-import Navigation from './Navigation'
+import Header from '@/components/common/Header'
 import BottomNavigation from './BottomNavigation'
 
 export default function Layout() {
@@ -9,10 +9,8 @@ export default function Layout() {
 
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-transparent">
-      {/* Header - Visible only on PC (xl: 1280px+) */}
-      <div className="hidden xl:flex w-full flex-col max-w-[1200px] mx-auto px-5">
-        <Navigation />
-      </div>
+      {/* Global Header - Visible on all screens */}
+      <Header />
 
       <main
         className={`flex-1 relative flex flex-col w-full max-w-[1200px] mx-auto ${isFixedPage ? 'overflow-hidden' : 'overflow-y-auto scrollbar-hide'
