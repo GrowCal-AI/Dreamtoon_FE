@@ -770,24 +770,8 @@ export default function DreamInputPage() {
 
   return (
     <div className="flex flex-col h-full bg-transparent">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-30 px-6 py-4 border-b border-white/5 bg-[#0F0C29]/80 backdrop-blur-md flex items-center justify-between max-w-[1200px] mx-auto">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-400 to-indigo-500 flex items-center justify-center text-white shadow-glow">
-            <Sparkles size={20} />
-          </div>
-          <div>
-            <h1 className="font-bold text-white text-sm">Dream AI 도슨트</h1>
-            <div className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${isAnalyzing ? 'bg-amber-400 animate-pulse' : 'bg-green-400'}`} />
-              <span className="text-xs text-gray-300">{isAnalyzing ? '꿈 분석 중...' : '대화 중'}</span>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 scrollbar-hide space-y-6 pt-24 pb-32">
+      <div className="flex-1 overflow-y-auto px-4 py-6 scrollbar-hide space-y-6 pt-4 pb-32">
         {messages.map((msg) => (
           <motion.div
             key={msg.id}
