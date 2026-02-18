@@ -1,103 +1,188 @@
-import { DreamEntry, DreamInputForm, WebtoonGenerationRequest, WebtoonGenerationResponse } from '@/types'
+import apiClient from './apiClient'
+import { DreamEntry, DreamInputForm } from '@/types'
 
-// API Base URL (환경변수로 관리 권장)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
+// === 인증 API ===
+export const authAPI = {
+  testLogin: async (userId: number = 1) => {
+    const { data } = await apiClient.post<{ accessToken: string; refreshToken: string }>(
+      `/auth/test-login?userId=${userId}`
+    )
+    localStorage.setItem('accessToken', data.accessToken)
+    localStorage.setItem('refreshToken', data.refreshToken)
+    return data
+  },
 
-// API 요청 헬퍼
-async function apiRequest<T>(
-  endpoint: string,
-  options?: RequestInit
-): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  })
+  refresh: async (refreshToken: string) => {
+    const { data } = await apiClient.post('/auth/refresh', { refreshToken })
+    return data
+  },
 
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.statusText}`)
-  }
-
-  return response.json()
+  logout: async () => {
+    await apiClient.post('/auth/logout')
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+  },
 }
 
-// Dream API
+// === 사용자 API ===
+export const userAPI = {
+  getMe: async () => {
+    const { data } = await apiClient.get('/users/me')
+    return data
+  },
+
+  updateNickname: async (nickname: string) => {
+    const { data } = await apiClient.patch(`/users/me/nickname?nickname=${encodeURIComponent(nickname)}`)
+    return data
+  },
+
+  getUsage: async () => {
+    const { data } = await apiClient.get('/subscriptions/usage')
+    return data
+  },
+}
+
+// === 꿈 API ===
 export const dreamAPI = {
-  // 모든 꿈 가져오기
-  getAllDreams: async (userId: string): Promise<DreamEntry[]> => {
-    return apiRequest<DreamEntry[]>(`/dreams?userId=${userId}`)
+  // Step 1: 꿈 기록 시작
+  initiateDream: async (dreamContent: string): Promise<{ dreamId: number; systemMessage: string }> => {
+    const { data } = await apiClient.post('/dreams', { dreamContent })
+    return data
   },
 
-  // 특정 꿈 가져오기
+  // Step 2: 감정 선택
+  selectEmotion: async (dreamId: number, primaryEmotion: string): Promise<{ systemMessage: string }> => {
+    const { data } = await apiClient.patch(`/dreams/${dreamId}/emotion`, { primaryEmotion })
+    return data
+  },
+
+  // Step 3: 상세 설명 입력 (비동기 분석 시작)
+  addDetails: async (
+    dreamId: number,
+    detailedDescription: string,
+    realLifeContext?: string
+  ): Promise<{ dreamId: number; status: string; message: string }> => {
+    const { data } = await apiClient.patch(`/dreams/${dreamId}/details`, {
+      detailedDescription,
+      realLifeContext,
+    })
+    return data
+  },
+
+  // 통합 꿈 생성 (FE 메인 플로우 - 한 번에 생성)
+  createDream: async (form: DreamInputForm): Promise<DreamEntry> => {
+    const { data } = await apiClient.post<DreamEntry>('/dreams/create', {
+      title: form.title,
+      content: form.content,
+      mainEmotion: form.mainEmotion?.toUpperCase(),
+      style: form.style,
+      characters: form.characters,
+      location: form.location,
+      lastScene: form.lastScene,
+    })
+    return data
+  },
+
+  // 꿈 목록 조회 (페이지네이션)
+  getAllDreams: async (page = 0, size = 20) => {
+    const { data } = await apiClient.get('/dreams', { params: { page, size } })
+    return data
+  },
+
+  // 특정 꿈 조회
   getDream: async (dreamId: string): Promise<DreamEntry> => {
-    return apiRequest<DreamEntry>(`/dreams/${dreamId}`)
-  },
-
-  // 꿈 생성
-  createDream: async (data: DreamInputForm): Promise<DreamEntry> => {
-    return apiRequest<DreamEntry>('/dreams', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
-  },
-
-  // 꿈 업데이트
-  updateDream: async (dreamId: string, data: Partial<DreamEntry>): Promise<DreamEntry> => {
-    return apiRequest<DreamEntry>(`/dreams/${dreamId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    })
+    const { data } = await apiClient.get<DreamEntry>(`/dreams/${dreamId}`)
+    return data
   },
 
   // 꿈 삭제
   deleteDream: async (dreamId: string): Promise<void> => {
-    return apiRequest<void>(`/dreams/${dreamId}`, {
-      method: 'DELETE',
-    })
+    await apiClient.delete(`/dreams/${dreamId}`)
+  },
+
+  // 즐겨찾기 토글
+  toggleFavorite: async (dreamId: string): Promise<{ dreamId: number; isFavorite: boolean }> => {
+    const { data } = await apiClient.patch(`/dreams/${dreamId}/favorite`)
+    return data
+  },
+
+  // 라이브러리에 추가
+  addToLibrary: async (dreamId: string): Promise<{ dreamId: number; isInLibrary: boolean }> => {
+    const { data } = await apiClient.post(`/dreams/${dreamId}/library`)
+    return data
   },
 
   // 웹툰 생성 요청
-  generateWebtoon: async (request: WebtoonGenerationRequest): Promise<WebtoonGenerationResponse> => {
-    return apiRequest<WebtoonGenerationResponse>('/webtoon/generate', {
-      method: 'POST',
-      body: JSON.stringify(request),
+  generateWebtoon: async (
+    dreamId: string,
+    genre: string
+  ): Promise<{ dreamId: number; status: string; message: string }> => {
+    const { data } = await apiClient.post(`/dreams/${dreamId}/webtoon`, {
+      selectedGenre: genre.toUpperCase(),
     })
+    return data
   },
 
-  // 음성 녹음 업로드 및 텍스트 변환
-  uploadVoice: async (audioBlob: Blob): Promise<{ text: string }> => {
-    const formData = new FormData()
-    formData.append('audio', audioBlob)
+  // 분석 결과 조회 (폴링용)
+  getAnalysis: async (dreamId: string) => {
+    const { data } = await apiClient.get(`/dreams/${dreamId}/analysis`)
+    return data
+  },
 
-    const response = await fetch(`${API_BASE_URL}/voice/transcribe`, {
-      method: 'POST',
-      body: formData,
-    })
+  // 꿈 대화 보내기
+  sendChatMessage: async (dreamId: string, message: string) => {
+    const { data } = await apiClient.post(`/dreams/${dreamId}/chat`, { message })
+    return data
+  },
 
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.statusText}`)
-    }
-
-    return response.json()
+  // 꿈 대화 기록 조회
+  getChatHistory: async (dreamId: string) => {
+    const { data } = await apiClient.get(`/dreams/${dreamId}/chat`)
+    return data
   },
 }
 
-// Analytics API
+// === 음성 API ===
+export const voiceAPI = {
+  transcribe: async (audioBlob: Blob): Promise<{ text: string }> => {
+    const formData = new FormData()
+    formData.append('audio', audioBlob)
+    const { data } = await apiClient.post('/voice/transcribe', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return data
+  },
+}
+
+// === 라이브러리 API ===
+export const libraryAPI = {
+  getLibrary: async (params?: {
+    favorite?: boolean
+    genre?: string
+    search?: string
+    sort?: string
+    page?: number
+    size?: number
+  }) => {
+    const { data } = await apiClient.get('/library', { params })
+    return data
+  },
+}
+
+// === 분석 API ===
 export const analyticsAPI = {
-  // 사용자 건강 지수 가져오기
-  getHealthIndex: async (userId: string) => {
-    return apiRequest(`/analytics/health-index?userId=${userId}`)
+  getHealthIndex: async () => {
+    const { data } = await apiClient.get('/analytics/health-index')
+    return data
   },
 
-  // 감정 분석 데이터 가져오기
-  getEmotionAnalysis: async (userId: string, period: 'week' | 'month' | 'year' = 'month') => {
-    return apiRequest(`/analytics/emotions?userId=${userId}&period=${period}`)
+  getEmotionAnalysis: async (period: 'week' | 'month' | 'year' = 'month') => {
+    const { data } = await apiClient.get('/analytics/emotions', { params: { period } })
+    return data
   },
 
-  // 꿈 패턴 분석
-  getDreamPatterns: async (userId: string) => {
-    return apiRequest(`/analytics/patterns?userId=${userId}`)
+  getDreamPatterns: async () => {
+    const { data } = await apiClient.get('/analytics/patterns')
+    return data
   },
 }

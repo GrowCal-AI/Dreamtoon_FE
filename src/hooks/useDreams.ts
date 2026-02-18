@@ -1,10 +1,10 @@
 import { useEffect } from 'react'
 import { useDreamStore } from '@/store/useDreamStore'
-import { mockDreams, mockUserProfile } from '@/utils/mockData'
+import { useAuthStore } from '@/store/useAuthStore'
 
 /**
  * 꿈 데이터를 관리하는 커스텀 훅
- * API 연동 시 이 훅만 수정하면 됨
+ * BE API에서 실제 데이터를 가져옴
  */
 export function useDreams() {
   const {
@@ -13,42 +13,22 @@ export function useDreams() {
     userProfile,
     isLoading,
     error,
-    setDreams,
+    fetchDreams,
     addDream,
     updateDream,
     deleteDream,
     setCurrentDream,
     toggleFavorite,
-    setUserProfile,
-    setLoading,
-    setError,
   } = useDreamStore()
 
-  // 초기 데이터 로드
+  const { isLoggedIn } = useAuthStore()
+
+  // 로그인 상태일 때 BE에서 꿈 목록 가져오기
   useEffect(() => {
-    const loadInitialData = async () => {
-      setLoading(true)
-      try {
-        // TODO: 실제 API 호출로 교체
-        // const dreams = await dreamAPI.getAllDreams(userId)
-        // const profile = await userAPI.getProfile(userId)
-
-        // Mock 데이터 사용
-        setTimeout(() => {
-          setDreams(mockDreams)
-          setUserProfile(mockUserProfile)
-          setLoading(false)
-        }, 500)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load dreams')
-        setLoading(false)
-      }
+    if (isLoggedIn && dreams.length === 0) {
+      fetchDreams()
     }
-
-    if (dreams.length === 0) {
-      loadInitialData()
-    }
-  }, [])
+  }, [isLoggedIn])
 
   return {
     dreams,
@@ -56,6 +36,7 @@ export function useDreams() {
     userProfile,
     isLoading,
     error,
+    fetchDreams,
     addDream,
     updateDream,
     deleteDream,

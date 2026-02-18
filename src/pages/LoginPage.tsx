@@ -3,21 +3,28 @@ import { motion } from 'framer-motion'
 import { Sparkles, ArrowLeft } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1'
+const BE_BASE_URL = API_BASE_URL.replace('/api/v1', '')
+
 export default function LoginPage() {
     const navigate = useNavigate()
-    const { login } = useAuthStore()
+    const { testLogin } = useAuthStore()
 
-    const handleSocialLogin = (_provider: string) => {
-        // Simulate login
-        setTimeout(() => {
-            login() // Update store state
-            navigate(-1) // Go back to previous page
-        }, 1000)
+    const handleKakaoLogin = () => {
+        window.location.href = `${BE_BASE_URL}/oauth2/authorization/kakao`
+    }
+
+    const handleGoogleLogin = () => {
+        window.location.href = `${BE_BASE_URL}/oauth2/authorization/google`
+    }
+
+    const handleDevLogin = async () => {
+        await testLogin(1)
+        navigate(-1)
     }
 
     return (
         <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-6 bg-[#0F0C29]">
-            {/* Background Elements */}
             <div className="fixed inset-0 pointer-events-none z-0">
                 <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[100px] animate-pulse" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-500/20 rounded-full blur-[100px] animate-pulse delay-1000" />
@@ -45,28 +52,37 @@ export default function LoginPage() {
 
                 <div className="space-y-4">
                     <button
-                        onClick={() => handleSocialLogin('Kakao')}
-                        className="w-full py-3.5 rounded-xl bg-[#FEE500] text-[#000000] font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2 relative overflow-hidden group"
+                        onClick={handleDevLogin}
+                        className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-lg shadow-purple-500/30"
                     >
-                        <span className="font-bold relative z-10">Kakao</span>
-                        <span className="relative z-10">로 3초 만에 시작하기</span>
+                        <Sparkles size={18} />
+                        바로 시작하기
+                    </button>
+
+                    <div className="relative my-4">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-white/10" />
+                        </div>
+                        <div className="relative flex justify-center text-xs">
+                            <span className="px-2 bg-[#0F0C29] text-gray-500">또는</span>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleKakaoLogin}
+                        className="w-full py-3.5 rounded-xl bg-[#FEE500] text-[#000000] font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                    >
+                        <span className="font-bold">Kakao</span>
+                        <span>로 시작하기</span>
                     </button>
 
                     <button
-                        onClick={() => handleSocialLogin('Google')}
+                        onClick={handleGoogleLogin}
                         className="w-full py-3.5 rounded-xl bg-white border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
                     >
                         <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
                         Google로 계속하기
                     </button>
-                </div>
-
-                <div className="mt-8 flex items-center justify-center gap-4 text-xs text-gray-500">
-                    <button className="hover:text-gray-300 transition-colors">아이디 찾기</button>
-                    <span className="w-[1px] h-3 bg-gray-600"></span>
-                    <button className="hover:text-gray-300 transition-colors">비밀번호 찾기</button>
-                    <span className="w-[1px] h-3 bg-gray-600"></span>
-                    <button className="hover:text-gray-300 transition-colors">회원가입</button>
                 </div>
 
                 <div className="mt-8 text-center">

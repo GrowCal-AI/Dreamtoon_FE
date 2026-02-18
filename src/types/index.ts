@@ -23,33 +23,33 @@ export interface DreamScene {
 // 꿈 분석 데이터
 export interface DreamAnalysis {
   emotions: Record<EmotionType, number>
-  tensionLevel: number // 0-100
-  controlLevel: number // 0-100 (루시드 드림 정도)
+  tensionLevel: number
+  controlLevel: number
   isNightmare: boolean
   repeatingSymbols: string[]
   relationshipPatterns: string[]
-  hasResolution: boolean // 꿈이 해결 구조를 가지는지
+  hasResolution: boolean
 }
 
 // 꿈 헬스 지수
 export interface DreamHealthIndex {
-  stressLevel: number // 0-100
-  anxietyLevel: number // 0-100
-  emotionalResilience: number // 0-100
-  relationshipStress: number // 0-100
-  sleepQuality: number // 0-100
-  nightmareRatio: number // 0-1
+  stressLevel: number
+  anxietyLevel: number
+  emotionalResilience: number
+  relationshipStress: number
+  sleepQuality: number
+  nightmareRatio: number
   lastUpdated: Date
 }
 
-// 꿈 엔트리 (사용자가 입력한 꿈)
+// 꿈 엔트리 (BE DreamResponse와 매핑)
 export interface DreamEntry {
   id: string
   userId: string
   title: string
   content: string
-  recordedAt: Date
-  createdAt: Date
+  recordedAt: string  // BE에서 ISO string으로 옴
+  createdAt: string   // BE에서 ISO string으로 옴
   inputMethod: 'text' | 'voice'
   style: DreamStyle
   format: 'webtoon' | 'animation'
@@ -59,6 +59,9 @@ export interface DreamEntry {
   videoUrl?: string
   tags: string[]
   isFavorite: boolean
+  isInLibrary?: boolean
+  processingStatus?: string
+  errorMessage?: string
 }
 
 // 사용자 프로필
@@ -98,4 +101,14 @@ export interface WebtoonGenerationResponse {
   webtoonUrl: string
   videoUrl?: string
   estimatedTime: number
+}
+
+// 날짜 포맷 헬퍼
+export function formatDate(dateStr: string, options?: Intl.DateTimeFormatOptions): string {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('ko-KR', options || { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
+export function formatDateShort(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('ko-KR')
 }

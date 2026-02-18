@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Check } from 'lucide-react'
+import { X, Check, Loader2 } from 'lucide-react'
+import { useAuthStore } from '@/store/useAuthStore'
 
 interface LoginModalProps {
     isOpen: boolean
@@ -8,12 +10,19 @@ interface LoginModalProps {
 }
 
 const LoginModal = ({ isOpen, onClose, onLoginSuccess }: LoginModalProps) => {
-    const handleSocialLogin = (provider: string) => {
-        // Simulate login process
-        console.log(`Logging in with ${provider}...`)
-        setTimeout(() => {
+    const { testLogin } = useAuthStore()
+    const [isLoggingIn, setIsLoggingIn] = useState(false)
+
+    const handleQuickLogin = async () => {
+        setIsLoggingIn(true)
+        try {
+            await testLogin(1)
             onLoginSuccess()
-        }, 1000)
+        } catch (error) {
+            console.error('Login failed:', error)
+        } finally {
+            setIsLoggingIn(false)
+        }
     }
 
     return (
@@ -55,7 +64,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }: LoginModalProps) => {
                                 </span>
                             </h2>
                             <p className="text-gray-300 text-sm mb-8">
-                                회원가입 후 나만의 꿈 보관함을 완성해보세요.
+                                로그인 후 나만의 꿈 보관함에 저장하세요.
                             </p>
 
                             {/* Benefits */}
@@ -75,20 +84,21 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }: LoginModalProps) => {
                                 ))}
                             </div>
 
-                            {/* Social Login Buttons */}
+                            {/* Login Button */}
                             <div className="space-y-3">
                                 <button
-                                    onClick={() => handleSocialLogin('Kakao')}
-                                    className="w-full py-3.5 rounded-xl bg-[#FEE500] text-[#000000] font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                                    onClick={handleQuickLogin}
+                                    disabled={isLoggingIn}
+                                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
                                 >
-                                    <span className="font-bold">Kakao</span>로 3초 만에 시작하기
-                                </button>
-                                <button
-                                    onClick={() => handleSocialLogin('Google')}
-                                    className="w-full py-3.5 rounded-xl bg-white text-gray-800 font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-                                >
-                                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
-                                    Google로 계속하기
+                                    {isLoggingIn ? (
+                                        <>
+                                            <Loader2 size={18} className="animate-spin" />
+                                            로그인 중...
+                                        </>
+                                    ) : (
+                                        '바로 로그인하기'
+                                    )}
                                 </button>
                             </div>
 
