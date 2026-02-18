@@ -132,11 +132,13 @@ export default function HomePage() {
         />
 
         {/* Hero Section */}
+
         <motion.div
           className="z-10 text-center mb-10 md:mb-16 px-4"
           variants={itemVariants}
         >
           <h1 className="text-2xl md:text-5xl mb-3 md:mb-4 tracking-tighter text-[#FFffff] font-bold drop-shadow-[0_0_10px_rgba(255,250,181,0.5)] leading-tight">
+
             당신의 꿈을 들려주세요
           </h1>
           <p className="text-sm md:text-base text-gray-300 font-medium px-6 md:px-0 leading-relaxed">
