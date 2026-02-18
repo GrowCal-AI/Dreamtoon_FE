@@ -1,15 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import {
-  Mic,
-  Send,
-  Sparkles,
-  Loader2,
-  X,
-  Layout,
-  PlayCircle,
-} from "lucide-react";
+import { Mic, Send, Sparkles, Loader2, X } from "lucide-react";
 import GenerationResult from "@/components/common/GenerationResult";
 
 import { useChatStore } from "@/store/useChatStore";
