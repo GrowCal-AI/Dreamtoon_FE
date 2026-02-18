@@ -1,13 +1,28 @@
-import { Outlet } from 'react-router-dom'
-import Navigation from './Navigation'
+import { Outlet, useLocation } from 'react-router-dom'
+import Header from '@/components/common/Header'
+import BottomNavigation from './BottomNavigation'
 
 export default function Layout() {
+  const location = useLocation()
+  // Pages that require fixed layout (no global scroll)
+  const isFixedPage = ['/', '/input', '/chat'].includes(location.pathname)
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navigation />
-      <main className="flex-1">
+    <div className="flex flex-col h-[100dvh] overflow-hidden bg-transparent">
+      {/* Global Header - Visible on all screens */}
+      <Header />
+
+      <main
+        className={`flex-1 relative flex flex-col w-full max-w-[1200px] mx-auto ${isFixedPage ? 'overflow-hidden' : 'overflow-y-auto scrollbar-hide'
+          }`}
+      >
         <Outlet />
       </main>
+
+      {/* Bottom Navigation - Visible only on Mobile (< 1280px) */}
+      <div className="flex xl:hidden w-full flex-col">
+        <BottomNavigation />
+      </div>
     </div>
   )
 }
