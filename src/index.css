@@ -11,10 +11,19 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  /* 전역 스크롤바 숨김 */
+  * {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
 }
 
 @layer components {
-
   /* 다크 테마용 글래스모피즘 카드 스타일 */
   .glass-card {
     @apply bg-white/5 backdrop-blur-[12px] border border-white/10 rounded-[24px] shadow-xl;
@@ -22,7 +31,6 @@
 }
 
 @layer utilities {
-
   /* 반응형 타이포그래피 스케일 (MO: 375px / PC: 1280px) */
   .text-h1 {
     @apply text-[28px] xl:text-[48px] font-bold leading-[1.3];
@@ -42,6 +50,16 @@
 
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* 스크롤바 숨김 유틸리티 */
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 
   /* 기존 그라데이션을 다크 테마에 맞게 유지/조정 */

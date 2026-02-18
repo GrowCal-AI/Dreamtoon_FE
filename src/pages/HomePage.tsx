@@ -1,8 +1,8 @@
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { Mic, Send } from 'lucide-react'
-import Particles from '@/components/common/Particles'
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { Mic, Send } from "lucide-react";
+import Particles from "@/components/common/Particles";
 
 // Animation Variants
 const containerVariants = {
@@ -17,51 +17,54 @@ const containerVariants = {
   exit: {
     opacity: 0,
     y: -20,
-    transition: { duration: 0.5, ease: 'easeInOut' },
+    transition: { duration: 0.5, ease: "easeInOut" },
   },
-}
+};
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: 'easeOut' },
+    transition: { duration: 0.6, ease: "easeOut" },
   },
-}
+};
 
 // Isolated Input Component to prevent re-renders
 const DreamInput = ({ onNavigate }: { onNavigate: () => void }) => {
-  const [inputText, setInputText] = useState('')
-  const [isExiting, setIsExiting] = useState(false)
+  const [inputText, setInputText] = useState("");
+  const [isExiting, setIsExiting] = useState(false);
 
   const handleMicClick = () => {
-    console.log('Voice input triggered')
+    console.log("Voice input triggered");
     // Future STT logic here
-  }
+  };
 
   const handleSubmit = () => {
-    if (!inputText.trim()) return
+    if (!inputText.trim()) return;
 
-    console.log('Submitting dream...')
-    setIsExiting(true)
+    console.log("Submitting dream...");
+    setIsExiting(true);
 
     // Allow exit animation to play before navigating
     setTimeout(() => {
-      onNavigate()
-    }, 500)
-  }
+      onNavigate();
+    }, 500);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSubmit()
+    if (e.key === "Enter") {
+      handleSubmit();
     }
-  }
+  };
 
-  if (isExiting) return null
+  if (isExiting) return null;
 
   return (
-    <motion.div className="z-10 w-full px-4 md:px-0 md:max-w-2xl" variants={itemVariants}>
+    <motion.div
+      className="z-10 w-full px-4 md:px-0 md:max-w-2xl"
+      variants={itemVariants}
+    >
       <div className="glass-card h-[48px] px-4 flex items-center gap-3 border border-white/20 focus-within:border-[#FFFAB5]/50 transition-colors bg-white/5 shadow-[0_0_15px_rgba(255,250,181,0.1)] focus-within:shadow-[0_0_20px_rgba(255,250,181,0.2)]">
         {/* Mic Icon */}
         <motion.button
@@ -87,10 +90,11 @@ const DreamInput = ({ onNavigate }: { onNavigate: () => void }) => {
         <motion.button
           onClick={handleSubmit}
           disabled={!inputText.trim()}
-          className={`transition-all duration-300 ${inputText.trim()
-            ? 'text-[#FFFAB5] hover:scale-110'
-            : 'text-gray-600 cursor-not-allowed'
-            }`}
+          className={`transition-all duration-300 ${
+            inputText.trim()
+              ? "text-[#FFFAB5] hover:scale-110"
+              : "text-gray-600 cursor-not-allowed"
+          }`}
           whileHover={inputText.trim() ? { scale: 1.05 } : {}}
           whileTap={inputText.trim() ? { scale: 0.95 } : {}}
         >
@@ -98,14 +102,14 @@ const DreamInput = ({ onNavigate }: { onNavigate: () => void }) => {
         </motion.button>
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
 export default function HomePage() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
-    <AnimatePresence mode='wait'>
+    <AnimatePresence mode="wait">
       <motion.div
         className="relative flex-1 w-full flex flex-col items-center justify-center text-white overflow-hidden"
         variants={containerVariants}
@@ -128,18 +132,21 @@ export default function HomePage() {
         />
 
         {/* Hero Section */}
-        <motion.div className="z-10 text-center mb-10 md:mb-16 px-4" variants={itemVariants}>
-          <h1 className="text-2xl md:text-5xl mb-3 md:mb-4 tracking-tighter text-[#FFFAB5] font-bold drop-shadow-[0_0_10px_rgba(255,250,181,0.5)] leading-tight">
+        <motion.div
+          className="z-10 text-center mb-10 md:mb-16 px-4"
+          variants={itemVariants}
+        >
+          <h1 className="text-2xl md:text-5xl mb-3 md:mb-4 tracking-tighter text-[#FFffff] font-bold drop-shadow-[0_0_10px_rgba(255,250,181,0.5)] leading-tight">
             당신의 꿈을 들려주세요
           </h1>
-          <p className="text-sm md:text-base text-gray-300 font-light px-6 md:px-0 leading-relaxed">
+          <p className="text-sm md:text-base text-gray-300 font-medium px-6 md:px-0 leading-relaxed">
             무의식이 만든 이야기를 AI가 멋진 웹툰으로 만들어드립니다
           </p>
         </motion.div>
 
         {/* Isolated Input Section */}
-        <DreamInput onNavigate={() => navigate('/chat')} />
+        <DreamInput onNavigate={() => navigate("/chat")} />
       </motion.div>
     </AnimatePresence>
-  )
+  );
 }
