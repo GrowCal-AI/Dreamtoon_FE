@@ -45,13 +45,14 @@ const EmotionChip = ({
 const AnalysisDashboard = ({ analysis }: { analysis: any }) => {
   // BE emotionScores는 한글 키(기쁨, 분노 등) 또는 영문 키(JOY, ANGER 등)로 반환됨
   const scores = analysis?.emotionScores || {};
+  const get = (ko: string, en: string) => scores[ko] ?? scores[en] ?? scores[en.toLowerCase()] ?? 0;
   const data = [
-    { subject: "기쁨", A: scores["기쁨"] ?? scores.JOY ?? scores.joy ?? 0, fullMark: 100 },
-    { subject: "불안", A: scores["불안"] ?? scores.ANXIETY ?? scores.anxiety ?? 0, fullMark: 100 },
-    { subject: "분노", A: scores["분노"] ?? scores.ANGER ?? scores.anger ?? 0, fullMark: 100 },
-    { subject: "슬픔", A: scores["슬픔"] ?? scores.SADNESS ?? scores.sadness ?? 0, fullMark: 100 },
-    { subject: "놀람", A: scores["놀람"] ?? scores.SURPRISE ?? scores.surprise ?? 0, fullMark: 100 },
-    { subject: "평온", A: scores["평온"] ?? scores.PEACE ?? scores.peace ?? 0, fullMark: 100 },
+    { subject: "기쁨", A: get("기쁨", "JOY"), fullMark: 100 },
+    { subject: "불안", A: get("불안", "ANXIETY"), fullMark: 100 },
+    { subject: "분노", A: get("분노", "ANGER"), fullMark: 100 },
+    { subject: "슬픔", A: get("슬픔", "SADNESS"), fullMark: 100 },
+    { subject: "놀람", A: get("놀람", "SURPRISE") || get("불편", "DISCOMFORT"), fullMark: 100 },
+    { subject: "평온", A: get("평온", "PEACE"), fullMark: 100 },
   ];
 
   const insight = analysis?.aiInsight;
@@ -258,7 +259,7 @@ export default function DreamInputPage() {
   const audioChunksRef = useRef<Blob[]>([]);
   const initializedRef = useRef(false);
 
-  const { addDream } = useDreamStore();
+  const { addDream, updateDream } = useDreamStore();
   const { isLoggedIn, login, checkSaveLimit, updateUser } = useAuthStore();
 
   const {
@@ -457,7 +458,13 @@ export default function DreamInputPage() {
             dream.processingStatus === "FAILED"
           ) {
             clearInterval(pollInterval);
-            addDream(dream);
+            // 중복 방지: 이미 존재하면 업데이트, 없으면 추가
+            const existing = useDreamStore.getState().dreams.find((d) => d.id === dream.id);
+            if (existing) {
+              updateDream(dream.id, dream);
+            } else {
+              addDream(dream);
+            }
             setIsGenerating(false);
           }
         } catch {
