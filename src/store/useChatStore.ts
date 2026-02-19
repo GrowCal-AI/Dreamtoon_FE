@@ -16,6 +16,7 @@ interface ChatStore {
     messages: Message[]
     selectedEmotion: EmotionType | null
     dreamContent: string
+    realLifeContext: string      // Step 2.5: 현실 고민
     analysisResult: DreamAnalysis | null
     selectedFormat: 'webtoon' | 'animation' | null
     selectedStyle: DreamStyle | null
@@ -30,6 +31,7 @@ interface ChatStore {
     addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void
     selectEmotion: (emotion: EmotionType) => void
     setDreamContent: (content: string) => void
+    setRealLifeContext: (context: string) => void
     setAnalysisResult: (result: DreamAnalysis) => void
     selectFormat: (format: 'webtoon' | 'animation') => void
     selectStyle: (style: DreamStyle) => void
@@ -46,6 +48,7 @@ export const useChatStore = create<ChatStore>((set) => ({
     messages: [],
     selectedEmotion: null,
     dreamContent: '',
+    realLifeContext: '',
     analysisResult: null,
     selectedFormat: null,
     selectedStyle: null,
@@ -70,6 +73,7 @@ export const useChatStore = create<ChatStore>((set) => ({
 
     selectEmotion: (emotion) => set({ selectedEmotion: emotion }),
     setDreamContent: (content) => set({ dreamContent: content }),
+    setRealLifeContext: (context) => set({ realLifeContext: context }),
     setAnalysisResult: (result) => set({ analysisResult: result }),
     selectFormat: (format) => set({ selectedFormat: format }),
     selectStyle: (style) => set({ selectedStyle: style }),
@@ -86,6 +90,7 @@ export const useChatStore = create<ChatStore>((set) => ({
         messages: [],
         selectedEmotion: null,
         dreamContent: '',
+        realLifeContext: '',
         analysisResult: null,
         selectedFormat: null,
         selectedStyle: null,

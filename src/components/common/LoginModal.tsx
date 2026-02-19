@@ -1,5 +1,9 @@
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Check } from 'lucide-react'
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1'
+const BE_BASE_URL = API_BASE_URL.replace('/api/v1', '')
 
 interface LoginModalProps {
     isOpen: boolean
@@ -7,16 +11,16 @@ interface LoginModalProps {
     onLoginSuccess: () => void
 }
 
-const LoginModal = ({ isOpen, onClose, onLoginSuccess }: LoginModalProps) => {
-    const handleSocialLogin = (provider: string) => {
-        // Simulate login process
-        console.log(`Logging in with ${provider}...`)
-        setTimeout(() => {
-            onLoginSuccess()
-        }, 1000)
+const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
+    const handleKakaoLogin = () => {
+        window.location.href = `${BE_BASE_URL}/oauth2/authorization/kakao`
     }
 
-    return (
+    const handleGoogleLogin = () => {
+        window.location.href = `${BE_BASE_URL}/oauth2/authorization/google`
+    }
+
+    return createPortal(
         <AnimatePresence>
             {isOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -55,7 +59,7 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }: LoginModalProps) => {
                                 </span>
                             </h2>
                             <p className="text-gray-300 text-sm mb-8">
-                                회원가입 후 나만의 꿈 보관함을 완성해보세요.
+                                로그인 후 나만의 꿈 보관함에 저장하세요.
                             </p>
 
                             {/* Benefits */}
@@ -75,20 +79,23 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }: LoginModalProps) => {
                                 ))}
                             </div>
 
-                            {/* Social Login Buttons */}
+                            {/* 소셜 로그인 */}
                             <div className="space-y-3">
                                 <button
-                                    onClick={() => handleSocialLogin('Kakao')}
-                                    className="w-full py-3.5 rounded-xl bg-[#FEE500] text-[#000000] font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                                    type="button"
+                                    onClick={handleKakaoLogin}
+                                    className="w-full py-3.5 rounded-xl bg-[#FEE500] text-[#000000] font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                                 >
-                                    <span className="font-bold">Kakao</span>로 3초 만에 시작하기
+                                    <span>Kakao</span>
+                                    <span>로 로그인하기</span>
                                 </button>
                                 <button
-                                    onClick={() => handleSocialLogin('Google')}
-                                    className="w-full py-3.5 rounded-xl bg-white text-gray-800 font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                                    type="button"
+                                    onClick={handleGoogleLogin}
+                                    className="w-full py-3.5 rounded-xl bg-white border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
                                 >
                                     <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
-                                    Google로 계속하기
+                                    Google로 로그인하기
                                 </button>
                             </div>
 
@@ -99,7 +106,8 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }: LoginModalProps) => {
                     </motion.div>
                 </div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     )
 }
 

@@ -1,18 +1,48 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { BarChart3, Library, LogIn, User } from 'lucide-react'
-import LogoImage from '@/asset/Dreamics.ai.svg'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+
+import { BarChart3, Library, LogIn, LogOut, User, Sparkles, Settings } from 'lucide-react'
+import LogoImage from '@/asset/Group 2.svg'
+
 import { motion, AnimatePresence } from 'framer-motion'
-// import { useAuthStore } from '@/store/useAuthStore' // Removed global store usage as requested
+import { useAuthStore } from '@/store/useAuthStore'
+import LoginModal from '@/components/common/LoginModal'
 
 export default function Header() {
     const location = useLocation()
-    const [isLoggedIn, setIsLoggedIn] = useState(false) // Transient state
+    const navigate = useNavigate()
+    const { isLoggedIn, logout, user } = useAuthStore()
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+    const [isProfileOpen, setIsProfileOpen] = useState(false)
+
+    const tierLabel: Record<string, string> = {
+        free: 'Free',
+        plus: 'Plus',
+        pro: 'Pro',
+        ultra: 'Ultra',
+    }
+    const currentTier = user?.subscriptionTier ?? 'free'
+    const isPaidTier = currentTier !== 'free'
+
+    const handlePortal = async () => {
+        setIsProfileOpen(false)
+        try {
+            const { subscriptionAPI } = await import('@/services/api')
+            const result = await subscriptionAPI.getPortalUrl()
+            window.location.href = result.portalUrl
+        } catch {
+            navigate('/pricing')
+        }
+    }
 
     const isActive = (path: string) => location.pathname === path
 
     const handleLogin = () => {
-        setIsLoggedIn(true)
+        setIsLoginModalOpen(true)
+    }
+
+    const handleLoginSuccess = () => {
+        setIsLoginModalOpen(false)
     }
 
     return (
@@ -31,29 +61,51 @@ export default function Header() {
 
                     {/* Desktop Navigation (Hidden on Mobile) */}
                     <div className="hidden md:flex items-center space-x-6">
-                        {/* Library Link */}
-                        <Link
-                            to="/library"
-                            className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all ${isActive('/library')
-                                ? 'bg-purple-500/20 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]'
-                                : 'hover:bg-white/10 text-gray-400 hover:text-white'
-                                }`}
-                        >
-                            <Library className={`w-5 h-5 ${isActive('/library') ? 'text-purple-400' : ''}`} />
-                            <span className="font-medium">라이브러리</span>
-                        </Link>
+                        {/* Library: 로그인 시 링크, 미로그인 시 로그인 유도 */}
+                        {isLoggedIn ? (
+                            <Link
+                                to="/library"
+                                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all ${isActive('/library')
+                                    ? 'bg-purple-500/20 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]'
+                                    : 'hover:bg-white/10 text-gray-400 hover:text-white'
+                                    }`}
+                            >
+                                <Library className={`w-5 h-5 ${isActive('/library') ? 'text-purple-400' : ''}`} />
+                                <span className="font-medium">라이브러리</span>
+                            </Link>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={handleLogin}
+                                className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-all hover:bg-white/10 text-gray-400 hover:text-white"
+                            >
+                                <Library className="w-5 h-5" />
+                                <span className="font-medium">라이브러리</span>
+                            </button>
+                        )}
 
-                        {/* Analytics Link */}
-                        <Link
-                            to="/analytics"
-                            className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all ${isActive('/analytics')
-                                ? 'bg-purple-500/20 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]'
-                                : 'hover:bg-white/10 text-gray-400 hover:text-white'
-                                }`}
-                        >
-                            <BarChart3 className={`w-5 h-5 ${isActive('/analytics') ? 'text-purple-400' : ''}`} />
-                            <span className="font-medium">분석</span>
-                        </Link>
+                        {/* 분석: 로그인 시 링크, 미로그인 시 로그인 유도 */}
+                        {isLoggedIn ? (
+                            <Link
+                                to="/analytics"
+                                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all ${isActive('/analytics')
+                                    ? 'bg-purple-500/20 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]'
+                                    : 'hover:bg-white/10 text-gray-400 hover:text-white'
+                                    }`}
+                            >
+                                <BarChart3 className={`w-5 h-5 ${isActive('/analytics') ? 'text-purple-400' : ''}`} />
+                                <span className="font-medium">분석</span>
+                            </Link>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={handleLogin}
+                                className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-all hover:bg-white/10 text-gray-400 hover:text-white"
+                            >
+                                <BarChart3 className="w-5 h-5" />
+                                <span className="font-medium">분석</span>
+                            </button>
+                        )}
 
                         {/* Login Button / Profile Icon */}
                         <div className="w-[100px] flex justify-end"> {/* Fixed width container for layout stability */}
@@ -77,14 +129,81 @@ export default function Header() {
                                         key="profile-icon"
                                         initial={{ opacity: 0, scale: 0.8 }}
                                         animate={{ opacity: 1, scale: 1 }}
-                                        className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-all group"
+                                        className="relative"
                                     >
-                                        <User className="w-5 h-5 text-white group-hover:text-purple-400 transition-colors" />
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsProfileOpen((o) => !o)}
+                                            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-all group"
+                                        >
+                                            <User className="w-5 h-5 text-white group-hover:text-purple-400 transition-colors" />
+                                        </button>
+                                        {isProfileOpen && (
+                                            <>
+                                                <div
+                                                    className="fixed inset-0 z-40"
+                                                    aria-hidden
+                                                    onClick={() => setIsProfileOpen(false)}
+                                                />
+                                                <div className="absolute right-0 top-full mt-2 z-50 min-w-[160px] py-1 rounded-xl bg-[#1a1635] border border-white/10 shadow-xl">
+                                                    {/* 현재 플랜 표시 */}
+                                                    <div className="px-4 py-2 border-b border-white/10">
+                                                        <span className="text-xs text-gray-500">현재 플랜</span>
+                                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                                            <Sparkles className="w-3 h-3 text-purple-400" />
+                                                            <span className="text-sm font-semibold text-white capitalize">
+                                                                {tierLabel[currentTier] ?? 'Free'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    {/* 구독 관리 / 포털 */}
+                                                    {isPaidTier ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={handlePortal}
+                                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                                                        >
+                                                            <Settings className="w-4 h-4 text-purple-400" />
+                                                            <span>구독 관리</span>
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                navigate('/pricing')
+                                                                setIsProfileOpen(false)
+                                                            }}
+                                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                                                        >
+                                                            <Sparkles className="w-4 h-4 text-purple-400" />
+                                                            <span>업그레이드</span>
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            logout()
+                                                            setIsProfileOpen(false)
+                                                        }}
+                                                        className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                                                    >
+                                                        <LogOut className="w-4 h-4" />
+                                                        <span>로그아웃</span>
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
                                     </motion.div>
                                 )}
                             </AnimatePresence>
                         </div>
                     </div>
+
+                    <LoginModal
+                        isOpen={isLoginModalOpen}
+                        onClose={() => setIsLoginModalOpen(false)}
+                        onLoginSuccess={handleLoginSuccess}
+                    />
 
                     {/* Mobile Navigation (Hidden completely as requested) */}
                     <div className="hidden">

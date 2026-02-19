@@ -31,24 +31,21 @@ const itemVariants = {
 };
 
 // Isolated Input Component to prevent re-renders
-const DreamInput = ({ onNavigate }: { onNavigate: () => void }) => {
+const DreamInput = ({
+  onNavigate,
+  onVoiceMode,
+}: {
+  onNavigate: (text: string) => void;
+  onVoiceMode: () => void;
+}) => {
   const [inputText, setInputText] = useState("");
   const [isExiting, setIsExiting] = useState(false);
 
-  const handleMicClick = () => {
-    console.log("Voice input triggered");
-    // Future STT logic here
-  };
-
   const handleSubmit = () => {
     if (!inputText.trim()) return;
-
-    console.log("Submitting dream...");
     setIsExiting(true);
-
-    // Allow exit animation to play before navigating
     setTimeout(() => {
-      onNavigate();
+      onNavigate(inputText);
     }, 500);
   };
 
@@ -66,12 +63,13 @@ const DreamInput = ({ onNavigate }: { onNavigate: () => void }) => {
       variants={itemVariants}
     >
       <div className="glass-card h-[48px] px-4 flex items-center gap-3 border border-white/20 focus-within:border-[#FFFAB5]/50 transition-colors bg-white/5 shadow-[0_0_15px_rgba(255,250,181,0.1)] focus-within:shadow-[0_0_20px_rgba(255,250,181,0.2)]">
-        {/* Mic Icon */}
+        {/* Mic Icon → voice-flow 모드 진입 */}
         <motion.button
-          onClick={handleMicClick}
+          onClick={onVoiceMode}
           className="text-gray-400 hover:text-[#FFFAB5] transition-colors"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
+          title="음성으로 꿈 이야기하기"
         >
           <Mic size={20} />
         </motion.button>
@@ -138,7 +136,6 @@ export default function HomePage() {
           variants={itemVariants}
         >
           <h1 className="text-2xl md:text-5xl mb-3 md:mb-4 tracking-tighter text-[#FFffff] font-bold drop-shadow-[0_0_10px_rgba(255,250,181,0.5)] leading-tight">
-
             당신의 꿈을 들려주세요
           </h1>
           <p className="text-sm md:text-base text-gray-300 font-medium px-6 md:px-0 leading-relaxed">
@@ -147,7 +144,14 @@ export default function HomePage() {
         </motion.div>
 
         {/* Isolated Input Section */}
-        <DreamInput onNavigate={() => navigate("/chat")} />
+        <DreamInput
+          onNavigate={(text) =>
+            navigate("/chat", { state: { initialMessage: text } })
+          }
+          onVoiceMode={() =>
+            navigate("/chat", { state: { voiceMode: true } })
+          }
+        />
       </motion.div>
     </AnimatePresence>
   );
