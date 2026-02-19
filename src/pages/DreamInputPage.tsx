@@ -633,14 +633,28 @@ export default function DreamInputPage() {
         selectFormat("webtoon");
         setStep(5); // 필터 선택 (기존 step 4)
       }, 500);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Dream analysis failed:", error);
       setIsAnalyzing(false);
-      addMessage({
-        role: "ai",
-        content: "분석 중 오류가 발생했습니다. 다시 시도해주세요.",
-        type: "text",
-      });
+
+      const errCode = error?.response?.data?.code;
+      const errStatus = error?.response?.status;
+
+      if (errCode === "GENERATION_LIMIT_EXCEEDED" || errStatus === 429) {
+        addMessage({
+          role: "ai",
+          content: "이번 달 꿈 생성 횟수를 모두 사용했어요. 더 많은 꿈을 기록하려면 구독 플랜을 업그레이드해 보세요!",
+          type: "text",
+        });
+        setShowPremiumModal(true);
+        setModalType("style");
+      } else {
+        addMessage({
+          role: "ai",
+          content: "분석 중 오류가 발생했습니다. 다시 시도해주세요.",
+          type: "text",
+        });
+      }
       setStep(3);
     }
   };
@@ -710,14 +724,26 @@ export default function DreamInputPage() {
         clearInterval(pollInterval);
         setIsGenerating(false);
       }, 120000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Webtoon generation failed:", error);
       setIsGenerating(false);
-      addMessage({
-        role: "ai",
-        content: "웹툰 생성 중 오류가 발생했습니다. 다시 시도해주세요.",
-        type: "text",
-      });
+
+      const errCode = error?.response?.data?.code;
+      if (errCode === "PREMIUM_STYLE_NOT_ALLOWED") {
+        addMessage({
+          role: "ai",
+          content: "프리미엄 스타일은 유료 구독자만 사용할 수 있어요. 구독 플랜을 확인해 보세요!",
+          type: "text",
+        });
+        setShowPremiumModal(true);
+        setModalType("style");
+      } else {
+        addMessage({
+          role: "ai",
+          content: "웹툰 생성 중 오류가 발생했습니다. 다시 시도해주세요.",
+          type: "text",
+        });
+      }
       setStep(5);
     }
   };

@@ -8,11 +8,31 @@ import { libraryAPI, dreamAPI } from "@/services/api";
 import { DreamEntry, DreamStyle, formatDateShort } from "@/types";
 import GenerationResult from "@/components/common/GenerationResult";
 
+/** BE genre 키(UPPERCASE) → FE DreamStyle(lowercase) 변환 */
+const GENRE_TO_STYLE: Record<string, DreamStyle> = {
+  CUSTOM: "custom", ROMANCE: "romance", SCHOOL: "school",
+  DARK_FANTASY: "dark-fantasy", HEALING: "healing", COMEDY: "comedy",
+  HORROR: "horror", PIXAR: "pixar", GHIBLI: "ghibli", CYBERPUNK: "cyberpunk",
+  CINEMATIC: "cinematic", VINTAGE: "vintage", MARVEL: "marvel",
+  LEGO: "lego", ANIMAL_CROSSING: "animal-crossing",
+};
+
+/** FE DreamStyle → 한글 라벨 */
+const STYLE_LABELS: Record<string, string> = {
+  custom: "맞춤형", romance: "로맨스", school: "학원물",
+  "dark-fantasy": "다크 판타지", healing: "힐링", comedy: "코미디",
+  horror: "호러", pixar: "픽사", ghibli: "지브리", cyberpunk: "사이버펑크",
+  cinematic: "시네마틱", vintage: "빈티지", marvel: "마블",
+  lego: "레고", "animal-crossing": "모동숲",
+};
+
 /** BE 라이브러리 API 응답 항목(dreamId, thumbnailUrl 등)을 DreamEntry 형태로 변환 */
 function mapLibraryItemToDreamEntry(item: Record<string, unknown>): DreamEntry {
   const id = String(item.dreamId ?? item.id ?? "");
   const recordedAt = String(item.recordedAt ?? item.createdAt ?? new Date().toISOString());
   const createdAt = String(item.createdAt ?? item.recordedAt ?? new Date().toISOString());
+  const rawGenre = String(item.selectedGenre ?? item.genre ?? item.style ?? "HEALING");
+  const style = GENRE_TO_STYLE[rawGenre] ?? rawGenre.toLowerCase().replace(/_/g, "-") as DreamStyle;
   return {
     id,
     userId: String(item.userId ?? ""),
@@ -21,7 +41,7 @@ function mapLibraryItemToDreamEntry(item: Record<string, unknown>): DreamEntry {
     recordedAt,
     createdAt,
     inputMethod: "text",
-    style: (item.style ?? item.genre ?? "healing") as DreamStyle,
+    style,
     format: "webtoon",
     scenes: Array.isArray(item.scenes) ? (item.scenes as DreamEntry["scenes"]) : [],
     analysis: (item.analysis as DreamEntry["analysis"]) ?? {
@@ -93,7 +113,7 @@ const DreamCard = memo(
               {formatDateShort(dream.recordedAt)}
             </span>
             <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full">
-              {dream.style}
+              {STYLE_LABELS[dream.style] ?? dream.style}
             </span>
           </div>
           <p className="text-sm text-gray-300 line-clamp-2">{dream.content || "꿈 기록"}</p>
@@ -124,8 +144,18 @@ export default function LibraryPage() {
   const [selectedDream, setSelectedDream] = useState<DreamEntry | null>(null);
   const [fullDreamDetail, setFullDreamDetail] = useState<DreamEntry | null>(null);
   const [libraryDreams, setLibraryDreams] = useState<DreamEntry[]>([]);
+  const [filterStyle, setFilterStyle] = useState<DreamStyle | "all">("all");
+  const [showFavorites, setShowFavorites] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // BE에서 라이브러리 목록 가져오기 (로그인 시에만)
+  /** FE DreamStyle → BE Genre (UPPERCASE) 변환 */
+  const styleToGenre = (style: DreamStyle | "all"): string | undefined => {
+    if (style === "all") return undefined;
+    const entry = Object.entries(GENRE_TO_STYLE).find(([, v]) => v === style);
+    return entry?.[0]; // e.g. "HEALING"
+  };
+
+  // BE에서 라이브러리 목록 가져오기 (로그인 시에만, 필터 변경 시 재호출)
   useEffect(() => {
     if (!isLoggedIn) {
       setLibraryDreams([]);
@@ -133,7 +163,10 @@ export default function LibraryPage() {
     }
     const fetchLibrary = async () => {
       try {
-        const result = await libraryAPI.getLibrary();
+        const params: Record<string, unknown> = {};
+        if (filterStyle !== "all") params.genre = styleToGenre(filterStyle);
+        if (showFavorites) params.favorite = true;
+        const result = await libraryAPI.getLibrary(params as any);
         const raw = result?.dreams ?? result?.content ?? (Array.isArray(result) ? result : []);
         const list = Array.isArray(raw) ? raw : [];
         const mapped = list.map((item: Record<string, unknown>) => mapLibraryItemToDreamEntry(item));
@@ -143,11 +176,7 @@ export default function LibraryPage() {
       }
     };
     fetchLibrary();
-  }, [isLoggedIn, dreams]);
-
-  const [filterStyle, setFilterStyle] = useState<DreamStyle | "all">("all");
-  const [showFavorites, setShowFavorites] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  }, [isLoggedIn, dreams, filterStyle, showFavorites]);
 
   const filteredDreams = useMemo(() => {
     let result = [...libraryDreams];
@@ -276,19 +305,7 @@ export default function LibraryPage() {
               }`}
             >
               <span>
-                {filterStyle === "all"
-                  ? "모든 스타일"
-                  : filterStyle === "romance"
-                    ? "로맨스"
-                    : filterStyle === "school"
-                      ? "학원물"
-                      : filterStyle === "dark-fantasy"
-                        ? "다크 판타지"
-                        : filterStyle === "healing"
-                          ? "힐링"
-                          : filterStyle === "comedy"
-                            ? "코미디"
-                            : "호러"}
+                {filterStyle === "all" ? "모든 스타일" : STYLE_LABELS[filterStyle] ?? filterStyle}
               </span>
               <ChevronDown
                 className={`w-4 h-4 transition-transform ${
@@ -310,12 +327,17 @@ export default function LibraryPage() {
                 >
                   {[
                     { value: "all", label: "모든 스타일" },
+                    { value: "custom", label: "맞춤형" },
                     { value: "romance", label: "로맨스" },
                     { value: "school", label: "학원물" },
                     { value: "dark-fantasy", label: "다크 판타지" },
                     { value: "healing", label: "힐링" },
                     { value: "comedy", label: "코미디" },
                     { value: "horror", label: "호러" },
+                    { value: "ghibli", label: "지브리" },
+                    { value: "marvel", label: "마블" },
+                    { value: "lego", label: "레고" },
+                    { value: "animal-crossing", label: "모동숲" },
                   ].map((option) => (
                     <button
                       key={option.value}
@@ -398,7 +420,16 @@ export default function LibraryPage() {
                 scenes={fullDreamDetail.scenes}
                 onSave={() => {}}
                 onReset={() => navigate("/")}
-                onTalkMore={() => alert("꿈 대화하기 기능은 준비 중입니다.")}
+                onTalkMore={() => {
+                  setSelectedDream(null);
+                  setFullDreamDetail(null);
+                  navigate("/dream-chat", {
+                    state: {
+                      dreamId: fullDreamDetail.id,
+                      dreamTitle: fullDreamDetail.title,
+                    },
+                  });
+                }}
                 onClose={() => {
                   setSelectedDream(null);
                   setFullDreamDetail(null);

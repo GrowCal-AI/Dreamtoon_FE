@@ -77,8 +77,8 @@ export const dreamAPI = {
     const payload = {
       title: form.title,
       content: form.content,
-      emotion: form.mainEmotion?.toUpperCase(),
-      selectedGenre: form.style?.toUpperCase(),
+      mainEmotion: form.mainEmotion?.toUpperCase(),
+      style: form.style?.toUpperCase(),
     }
     console.log('[createDream] 요청 payload:', payload)
     const { data } = await apiClient.post('/dreams/create', payload)
