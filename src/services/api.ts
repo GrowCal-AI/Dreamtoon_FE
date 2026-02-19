@@ -74,12 +74,15 @@ export const dreamAPI = {
 
   // [방법 A] 한 번에 전송 (권장)
   createDream: async (form: DreamInputForm): Promise<{ dreamId: string; status: string }> => {
-    const { data } = await apiClient.post('/dreams/create', {
+    const payload = {
       title: form.title,
       content: form.content,
       emotion: form.mainEmotion?.toUpperCase(),
       selectedGenre: form.style?.toUpperCase(),
-    })
+    }
+    console.log('[createDream] 요청 payload:', payload)
+    const { data } = await apiClient.post('/dreams/create', payload)
+    console.log('[createDream] 응답 data:', data)
     return data
   },
 

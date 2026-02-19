@@ -126,21 +126,30 @@ export default function PricingPage({ onClose, isModal = false }: PricingPagePro
     }
 
     setLoadingTier(plan.tier)
+
+    // 결제 완료/취소 후 돌아올 URL
+    const successUrl = `${window.location.origin}/payment/success`
+    const cancelUrl  = `${window.location.origin}/payment/cancel?cancelled=true`
+
     try {
       // 백엔드에서 Polar Checkout Session URL 받아오기
       const result = await subscriptionAPI.createCheckout(plan.tier as 'PLUS' | 'PRO' | 'ULTRA')
-      // Polar 결제 페이지로 이동 (새 탭 또는 현재 탭)
       window.location.href = result.checkoutUrl
     } catch (err) {
       console.error('Checkout 생성 실패:', err)
-      // 백엔드 API 미구현 시 Polar Checkout Link로 직접 이동 (fallback)
+      // fallback: Polar Checkout Link + success/cancel URL 파라미터
       const fallbackUrls: Record<string, string> = {
         PLUS:  `https://buy.polar.sh/${POLAR_PRODUCT_IDS.PLUS}`,
         PRO:   `https://buy.polar.sh/${POLAR_PRODUCT_IDS.PRO}`,
         ULTRA: `https://buy.polar.sh/${POLAR_PRODUCT_IDS.ULTRA}`,
       }
-      const url = fallbackUrls[plan.tier]
-      if (url) window.location.href = url
+      const base = fallbackUrls[plan.tier]
+      if (base) {
+        const url = new URL(base)
+        url.searchParams.set('success_url', successUrl)
+        url.searchParams.set('cancel_url', cancelUrl)
+        window.location.href = url.toString()
+      }
     } finally {
       setLoadingTier(null)
     }

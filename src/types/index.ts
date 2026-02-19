@@ -2,7 +2,7 @@
 export type EmotionType = 'joy' | 'anxiety' | 'anger' | 'sadness' | 'surprise' | 'peace'
 
 // 꿈 스타일 프리셋
-export type DreamStyle = 'romance' | 'school' | 'dark-fantasy' | 'healing' | 'comedy' | 'horror' | 'pixar' | 'ghibli' | 'cyberpunk' | 'cinematic' | 'vintage'
+export type DreamStyle = 'custom' | 'romance' | 'school' | 'dark-fantasy' | 'healing' | 'comedy' | 'horror' | 'pixar' | 'ghibli' | 'cyberpunk' | 'cinematic' | 'vintage' | 'marvel' | 'lego' | 'animal-crossing'
 
 // 꿈 장면 컷
 export interface DreamScene {
