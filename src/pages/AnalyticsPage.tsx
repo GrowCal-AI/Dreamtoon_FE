@@ -348,7 +348,7 @@ const getInsight = (stress: number, emotions: any) => {
       tone: "공감, 위로",
     };
   }
-  if (stressLevel === "High" && dominantEmotion === "angry") {
+  if (stressLevel === "High" && dominantEmotion === "anger") {
     return {
       message:
         "억눌린 **감정의 폭발**이 감지됩니다. 현실에서 표현하지 못한 답답함이 꿈속에서 표출되고 있어요.",

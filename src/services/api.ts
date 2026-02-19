@@ -54,7 +54,7 @@ export const userAPI = {
 export const dreamAPI = {
   // [방법 B] Step 1: 꿈 기록 시작 (title + content)
   initiateDream: async (title: string, content: string): Promise<{ dreamId: number; status: string }> => {
-    const { data } = await apiClient.post('/dreams', { title, content })
+    const { data } = await apiClient.post('/dreams', { title, dreamContent: content })
     return data
   },
 
