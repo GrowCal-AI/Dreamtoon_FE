@@ -584,16 +584,6 @@ export default function DreamInputPage() {
     try {
       await ensureLoggedIn();
 
-<<<<<<< HEAD
-      // Step 1: BE에 꿈 기록 시작 (title은 content 앞부분으로 자동 생성)
-      const autoTitle = content.length > 30 ? content.slice(0, 30) + '...' : content;
-      const initResult = await dreamAPI.initiateDream(autoTitle, content);
-      const dreamId = initResult?.dreamId;
-
-      if (!dreamId) {
-        throw new Error("dreamId를 받지 못했습니다.");
-      }
-=======
       // [방법 A] 한 번에 전송: title + content + emotion + selectedGenre
       const initResult = await dreamAPI.createDream({
         title: dreamDetail.slice(0, 50) || "나의 꿈",
@@ -604,7 +594,6 @@ export default function DreamInputPage() {
       console.log('[handleRealLifeSubmit] initResult 전체:', initResult)
       const dreamId = initResult?.dreamId ?? (initResult as any)?.id ?? (initResult as any)?.dream_id;
       if (!dreamId) throw new Error("dreamId를 받지 못했습니다.");
->>>>>>> origin/develop
       setCreatedDreamId(String(dreamId));
 
       // 분석 폴링

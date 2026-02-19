@@ -128,13 +128,7 @@ export default function PricingPage({ onClose, isModal = false }: PricingPagePro
     }
 
     setLoadingTier(plan.tier)
-<<<<<<< HEAD
     setSyncMessage(null)
-    try {
-      // 백엔드에서 Polar Checkout Session URL 받아오기
-      const result = await subscriptionAPI.createCheckout(plan.tier as 'PLUS' | 'PRO' | 'ULTRA')
-      // Polar 결제 페이지로 이동
-=======
 
     // 결제 완료/취소 후 돌아올 URL
     const successUrl = `${window.location.origin}/payment/success`
@@ -143,7 +137,6 @@ export default function PricingPage({ onClose, isModal = false }: PricingPagePro
     try {
       // 백엔드에서 Polar Checkout Session URL 받아오기
       const result = await subscriptionAPI.createCheckout(plan.tier as 'PLUS' | 'PRO' | 'ULTRA')
->>>>>>> origin/develop
       window.location.href = result.checkoutUrl
     } catch (err) {
       const axiosErr = err as AxiosError<{ code?: string; message?: string }>
