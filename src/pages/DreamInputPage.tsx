@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Mic, Send, Sparkles, Loader2, X } from "lucide-react";
+import PricingPage from "@/pages/PricingPage";
 import GenerationResult from "@/components/common/GenerationResult";
 
 import { useChatStore } from "@/store/useChatStore";
@@ -45,13 +46,18 @@ const EmotionChip = ({
 const AnalysisDashboard = ({ analysis }: { analysis: any }) => {
   // BE emotionScores는 한글 키(기쁨, 분노 등) 또는 영문 키(JOY, ANGER 등)로 반환됨
   const scores = analysis?.emotionScores || {};
-  const get = (ko: string, en: string) => scores[ko] ?? scores[en] ?? scores[en.toLowerCase()] ?? 0;
+  const get = (ko: string, en: string) =>
+    scores[ko] ?? scores[en] ?? scores[en.toLowerCase()] ?? 0;
   const data = [
     { subject: "기쁨", A: get("기쁨", "JOY"), fullMark: 100 },
     { subject: "불안", A: get("불안", "ANXIETY"), fullMark: 100 },
     { subject: "분노", A: get("분노", "ANGER"), fullMark: 100 },
     { subject: "슬픔", A: get("슬픔", "SADNESS"), fullMark: 100 },
-    { subject: "놀람", A: get("놀람", "SURPRISE") || get("불편", "DISCOMFORT"), fullMark: 100 },
+    {
+      subject: "놀람",
+      A: get("놀람", "SURPRISE") || get("불편", "DISCOMFORT"),
+      fullMark: 100,
+    },
     { subject: "평온", A: get("평온", "PEACE"), fullMark: 100 },
   ];
 
@@ -245,10 +251,12 @@ const SubscriptionModal = ({
 
 export default function DreamInputPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<"style" | "deep_chat">("style"); // Added modalType state
+  const [modalType, setModalType] = useState<"style" | "deep_chat">("style");
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
 
   // State for pending save actions
   const [pendingSave, setPendingSave] = useState(false);
@@ -260,7 +268,7 @@ export default function DreamInputPage() {
   const initializedRef = useRef(false);
 
   const { addDream, updateDream } = useDreamStore();
-  const { isLoggedIn, login, checkSaveLimit, updateUser } = useAuthStore();
+  const { isLoggedIn, login, checkSaveLimit } = useAuthStore();
 
   const {
     step,
@@ -282,7 +290,6 @@ export default function DreamInputPage() {
     showPremiumModal,
     setShowPremiumModal,
     isPremium,
-    setIsPremium,
     reset,
   } = useChatStore();
 
@@ -291,18 +298,40 @@ export default function DreamInputPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, step, isAnalyzing, isGenerating]);
 
-  // Initial Greeting
+  // Initial Greeting and handle initial message from HomePage
   useEffect(() => {
-    if (messages.length === 0 && step === 0 && !initializedRef.current) {
+    const initialMessage = (location.state as any)?.initialMessage;
+
+    if (!initializedRef.current) {
       initializedRef.current = true;
+      // 항상 초기화 후 시작 (이전 세션 상태 제거)
+      reset();
       setTimeout(() => {
-        addMessage({
-          role: "ai",
-          content:
-            "안녕하세요! 어젯밤 꾸셨던 꿈은 어떠셨나요? 가장 먼저 떠오르는 감정을 알려주세요.",
-          type: "text",
-        });
-        setStep(1); // Emotion Step
+        if (initialMessage) {
+          // HomePage에서 넘어온 메시지를 첫 채팅으로 표시
+          addMessage({
+            role: "user",
+            content: initialMessage,
+            type: "text",
+          });
+          setDreamContent(initialMessage);
+          // 감정 선택 단계로 이동
+          addMessage({
+            role: "ai",
+            content: `"${initialMessage}" 꿈에서 느낀 감정을 선택해주세요.`,
+            type: "text",
+          });
+          setStep(1);
+        } else {
+          // 직접 /chat 접근 시 일반 플로우
+          addMessage({
+            role: "ai",
+            content:
+              "안녕하세요! 어젯밤 꾸셨던 꿈은 어떠셨나요? 가장 먼저 떠오르는 감정을 알려주세요.",
+            type: "text",
+          });
+          setStep(1);
+        }
       }, 500);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -454,7 +483,9 @@ export default function DreamInputPage() {
           ) {
             clearInterval(pollInterval);
             // 중복 방지: 이미 존재하면 업데이트, 없으면 추가
-            const existing = useDreamStore.getState().dreams.find((d) => d.id === dream.id);
+            const existing = useDreamStore
+              .getState()
+              .dreams.find((d) => d.id === dream.id);
             if (existing) {
               updateDream(dream.id, dream);
             } else {
@@ -544,16 +575,26 @@ export default function DreamInputPage() {
         stream.getTracks().forEach((t) => t.stop());
         setIsRecording(false);
 
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm",
+        });
         try {
-          addMessage({ role: "ai", content: "음성을 텍스트로 변환하고 있어요...", type: "text" });
+          addMessage({
+            role: "ai",
+            content: "음성을 텍스트로 변환하고 있어요...",
+            type: "text",
+          });
           const result = await voiceAPI.transcribe(audioBlob);
           if (result.text) {
             setDreamContent(result.text);
           }
         } catch (error) {
           console.error("Voice transcription failed:", error);
-          addMessage({ role: "ai", content: "음성 변환에 실패했어요. 직접 입력해주세요.", type: "text" });
+          addMessage({
+            role: "ai",
+            content: "음성 변환에 실패했어요. 직접 입력해주세요.",
+            type: "text",
+          });
         }
       };
 
@@ -561,7 +602,11 @@ export default function DreamInputPage() {
       setIsRecording(true);
     } catch (error) {
       console.error("Microphone access denied:", error);
-      addMessage({ role: "ai", content: "마이크 접근이 거부되었습니다. 브라우저 설정을 확인해주세요.", type: "text" });
+      addMessage({
+        role: "ai",
+        content: "마이크 접근이 거부되었습니다. 브라우저 설정을 확인해주세요.",
+        type: "text",
+      });
     }
   };
 
@@ -572,27 +617,12 @@ export default function DreamInputPage() {
 
   const handleSubscribe = () => {
     if (!isLoggedIn) {
-      // Redirect to login if not logged in
-      alert("구독을 위해 로그인이 필요합니다."); // Simple toast replacement
       navigate("/login");
       return;
     }
-
-    // If logged in, proceed to subscribe
-    setIsPremium(true);
+    // SubscriptionModal의 버튼 → PricingPage 모달 오픈
     setShowPremiumModal(false);
-
-    // Update user profile
-    updateUser({ subscriptionTier: "premium" });
-
-    alert(
-      "프리미엄 구독이 시작되었습니다! 이제 무제한으로 저장할 수 있습니다.",
-    );
-
-    // If pending save existed and was blocked by limit, retry?
-    if (pendingSave) {
-      executeSave();
-    }
+    setIsPricingModalOpen(true);
   };
 
   const handleLoginSuccess = () => {
@@ -650,18 +680,26 @@ export default function DreamInputPage() {
                 key="result"
                 title={
                   createdDreamId
-                    ? useDreamStore.getState().dreams.find((d) => d.id === createdDreamId)?.title || "나의 꿈"
+                    ? useDreamStore
+                        .getState()
+                        .dreams.find((d) => d.id === createdDreamId)?.title ||
+                      "나의 꿈"
                     : "나의 꿈"
                 }
                 date={new Date().toLocaleDateString()}
                 mediaUrl={
                   createdDreamId
-                    ? useDreamStore.getState().dreams.find((d) => d.id === createdDreamId)?.webtoonUrl || ""
+                    ? useDreamStore
+                        .getState()
+                        .dreams.find((d) => d.id === createdDreamId)
+                        ?.webtoonUrl || ""
                     : ""
                 }
                 scenes={
                   createdDreamId
-                    ? useDreamStore.getState().dreams.find((d) => d.id === createdDreamId)?.scenes
+                    ? useDreamStore
+                        .getState()
+                        .dreams.find((d) => d.id === createdDreamId)?.scenes
                     : undefined
                 }
                 type="webtoon"
@@ -751,6 +789,12 @@ export default function DreamInputPage() {
           onClose={() => setIsLoginModalOpen(false)}
           onLoginSuccess={handleLoginSuccess}
         />
+
+        <AnimatePresence>
+          {isPricingModalOpen && (
+            <PricingPage isModal onClose={() => setIsPricingModalOpen(false)} />
+          )}
+        </AnimatePresence>
       </div>
     );
   }
@@ -1010,6 +1054,13 @@ export default function DreamInputPage() {
           </button>
         </form>
       </div>
+
+      {/* PricingPage 모달 */}
+      <AnimatePresence>
+        {isPricingModalOpen && (
+          <PricingPage isModal onClose={() => setIsPricingModalOpen(false)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

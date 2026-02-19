@@ -38,21 +38,24 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
 
-    // 401 에러 시 토큰 갱신 시도 (Refresh Token은 HttpOnly Cookie로 전달)
+    // 401 에러 시 토큰 갱신 시도 (agent.txt: Body에 refreshToken 전달)
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
 
       try {
-        const res = await apiClient.post('/auth/refresh', {})
+        const refreshToken = localStorage.getItem('refreshToken')
+        const res = await apiClient.post('/auth/refresh', { refreshToken })
         const raw = res.data
-        const newToken = raw?.data?.accessToken ?? raw?.accessToken
+        const newToken = raw?.accessToken ?? raw?.data?.accessToken
+        const newRefresh = raw?.refreshToken ?? raw?.data?.refreshToken
         if (newToken) {
           localStorage.setItem('accessToken', newToken)
+          if (newRefresh) localStorage.setItem('refreshToken', newRefresh)
           originalRequest.headers.Authorization = `Bearer ${newToken}`
           return apiClient(originalRequest)
         }
       } catch {
-        // 갱신 실패 (쿠키 만료 등) → 토큰 정리 + 스토어 동기화
+        // 갱신 실패 → 토큰 정리 + 스토어 동기화
       }
 
       localStorage.removeItem('accessToken')

@@ -31,7 +31,7 @@ const itemVariants = {
 };
 
 // Isolated Input Component to prevent re-renders
-const DreamInput = ({ onNavigate }: { onNavigate: () => void }) => {
+const DreamInput = ({ onNavigate }: { onNavigate: (text: string) => void }) => {
   const [inputText, setInputText] = useState("");
   const [isExiting, setIsExiting] = useState(false);
 
@@ -48,7 +48,7 @@ const DreamInput = ({ onNavigate }: { onNavigate: () => void }) => {
 
     // Allow exit animation to play before navigating
     setTimeout(() => {
-      onNavigate();
+      onNavigate(inputText);
     }, 500);
   };
 
@@ -138,7 +138,6 @@ export default function HomePage() {
           variants={itemVariants}
         >
           <h1 className="text-2xl md:text-5xl mb-3 md:mb-4 tracking-tighter text-[#FFffff] font-bold drop-shadow-[0_0_10px_rgba(255,250,181,0.5)] leading-tight">
-
             당신의 꿈을 들려주세요
           </h1>
           <p className="text-sm md:text-base text-gray-300 font-medium px-6 md:px-0 leading-relaxed">
@@ -147,7 +146,11 @@ export default function HomePage() {
         </motion.div>
 
         {/* Isolated Input Section */}
-        <DreamInput onNavigate={() => navigate("/chat")} />
+        <DreamInput
+          onNavigate={(text) =>
+            navigate("/chat", { state: { initialMessage: text } })
+          }
+        />
       </motion.div>
     </AnimatePresence>
   );

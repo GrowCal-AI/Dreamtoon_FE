@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
-import { BarChart3, Library, LogIn, LogOut, User } from 'lucide-react'
+import { BarChart3, Library, LogIn, LogOut, User, Sparkles, Settings } from 'lucide-react'
 import LogoImage from '@/asset/Group 2.svg'
 
 import { motion, AnimatePresence } from 'framer-motion'
@@ -10,9 +10,30 @@ import LoginModal from '@/components/common/LoginModal'
 
 export default function Header() {
     const location = useLocation()
-    const { isLoggedIn, logout } = useAuthStore()
+    const navigate = useNavigate()
+    const { isLoggedIn, logout, user } = useAuthStore()
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
     const [isProfileOpen, setIsProfileOpen] = useState(false)
+
+    const tierLabel: Record<string, string> = {
+        free: 'Free',
+        plus: 'Plus',
+        pro: 'Pro',
+        ultra: 'Ultra',
+    }
+    const currentTier = user?.subscriptionTier ?? 'free'
+    const isPaidTier = currentTier !== 'free'
+
+    const handlePortal = async () => {
+        setIsProfileOpen(false)
+        try {
+            const { subscriptionAPI } = await import('@/services/api')
+            const result = await subscriptionAPI.getPortalUrl()
+            window.location.href = result.portalUrl
+        } catch {
+            navigate('/pricing')
+        }
+    }
 
     const isActive = (path: string) => location.pathname === path
 
@@ -124,7 +145,40 @@ export default function Header() {
                                                     aria-hidden
                                                     onClick={() => setIsProfileOpen(false)}
                                                 />
-                                                <div className="absolute right-0 top-full mt-2 z-50 min-w-[140px] py-1 rounded-xl bg-[#1a1635] border border-white/10 shadow-xl">
+                                                <div className="absolute right-0 top-full mt-2 z-50 min-w-[160px] py-1 rounded-xl bg-[#1a1635] border border-white/10 shadow-xl">
+                                                    {/* 현재 플랜 표시 */}
+                                                    <div className="px-4 py-2 border-b border-white/10">
+                                                        <span className="text-xs text-gray-500">현재 플랜</span>
+                                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                                            <Sparkles className="w-3 h-3 text-purple-400" />
+                                                            <span className="text-sm font-semibold text-white capitalize">
+                                                                {tierLabel[currentTier] ?? 'Free'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    {/* 구독 관리 / 포털 */}
+                                                    {isPaidTier ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={handlePortal}
+                                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                                                        >
+                                                            <Settings className="w-4 h-4 text-purple-400" />
+                                                            <span>구독 관리</span>
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                navigate('/pricing')
+                                                                setIsProfileOpen(false)
+                                                            }}
+                                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                                                        >
+                                                            <Sparkles className="w-4 h-4 text-purple-400" />
+                                                            <span>업그레이드</span>
+                                                        </button>
+                                                    )}
                                                     <button
                                                         type="button"
                                                         onClick={() => {

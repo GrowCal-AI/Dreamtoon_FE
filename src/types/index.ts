@@ -64,6 +64,29 @@ export interface DreamEntry {
   errorMessage?: string
 }
 
+// 구독 티어
+export type SubscriptionTier = 'free' | 'plus' | 'pro' | 'ultra'
+
+// 사용량 정보 (BE /subscriptions/usage 응답)
+export interface UsageInfo {
+  tier: 'FREE' | 'PLUS' | 'PRO' | 'ULTRA'
+  isActive: boolean
+  standardGenerationCount: number
+  maxStandardGenerations: number
+  premiumGenerationCount: number
+  maxPremiumGenerations: number
+  premiumTrialUsed: boolean
+  libraryCount: number
+  maxLibrary: number
+  favoriteCount: number
+  maxFavorites: number
+  quotaResetDate: string
+  canGenerateStandard: boolean
+  canGeneratePremium: boolean
+  canAddToLibrary: boolean
+  canFavorite: boolean
+}
+
 // 사용자 프로필
 export interface UserProfile {
   id: string
@@ -71,8 +94,9 @@ export interface UserProfile {
   email: string
   createdAt: Date
   dreamCount: number
-  subscriptionTier: 'free' | 'premium'
+  subscriptionTier: SubscriptionTier
   monthlySaveCount: number
+  usage?: UsageInfo
   healthIndex: DreamHealthIndex
 }
 

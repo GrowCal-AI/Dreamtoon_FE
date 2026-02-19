@@ -1,0 +1,184 @@
+# Dreamtoon 백엔드 API 연동 지시
+
+## 기본 정보
+- 백엔드 서버: https://study-mate.club
+- 모든 API prefix: /api/v1
+- 스웨거: https://study-mate.club/swagger-ui/index.html
+- 인증: Authorization: Bearer {accessToken} 헤더 사용
+
+---
+
+## 1. 인증 (Auth)
+
+### 카카오 로그인
+- 브라우저를 직접 이동: GET https://study-mate.club/oauth2/authorization/kakao
+- 로그인 완료 후 프론트 콜백 URL로 리다이렉트되며 accessToken, refreshToken 쿼리파라미터로 전달됨
+
+### 토큰 갱신
+POST /api/v1/auth/refresh
+Body: { "refreshToken": "..." }
+Response: { "accessToken": "...", "refreshToken": "..." }
+
+### 로그아웃
+POST /api/v1/auth/logout  (Authorization 헤더 필요)
+→ 클라이언트에서도 저장된 토큰 삭제 처리 필요
+
+### [개발용] 테스트 로그인
+POST /api/v1/auth/test-login?userId=3
+→ 실제 JWT 토큰 발급됨 (개발 환경에서만 사용)
+
+---
+
+## 2. 사용자 정보 (Users)
+
+### 내 정보 조회
+GET /api/v1/users/me
+Response: { "id", "email", "nickname", "provider" (KAKAO/GOOGLE) }
+
+### 닉네임 변경
+PATCH /api/v1/users/me/nickname?nickname=새닉네임
+
+### 권한 및 사용량 조회
+GET /api/v1/users/me/permissions
+→ 구독 티어, 이번 달 생성 횟수, 잔여 할당량 확인용
+
+---
+
+## 3. 꿈 생성 메인 플로우 (Dreams)
+
+### [방법 A] 한 번에 전송 (프론트 권장)
+POST /api/v1/dreams/create
+Body: {
+  "title": "꿈 제목",
+  "content": "꿈 내용 텍스트",
+  "emotion": "JOY",           // JOY | ANXIETY | ANGER | SADNESS | SURPRISE | PEACE
+  "selectedGenre": "ROMANCE"  // 아래 장르 목록 참고
+}
+Response: { "dreamId", "status": "PROCESSING" }
+
+### [방법 B] 단계별 (스텝 형식 UX)
+1단계: POST /api/v1/dreams/             Body: { "title", "content" }
+2단계: PATCH /api/v1/dreams/{dreamId}/emotion   Body: { "emotion": "JOY" }
+3단계: PATCH /api/v1/dreams/{dreamId}/details   Body: { "selectedGenre": "ROMANCE" }
+       → 202 Accepted, 비동기 AI 분석 시작됨
+4단계: GET /api/v1/dreams/{dreamId}/analysis    (폴링으로 status 확인)
+       → status: PENDING | PROCESSING | COMPLETED | FAILED
+5단계: POST /api/v1/dreams/{dreamId}/webtoon    Body: { "selectedGenre": "ROMANCE" }
+       → 202 Accepted, 비동기 웹툰 생성 시작됨
+
+### 꿈 완성 결과 조회 (폴링)
+GET /api/v1/dreams/{dreamId}
+→ status가 COMPLETED이면 webtoonImages 배열에 4컷 이미지 URL 포함
+
+### 감정 목록 (6개)
+JOY, ANXIETY, ANGER, SADNESS, SURPRISE, PEACE
+
+### 장르 목록
+스탠다드(무료): CUSTOM, ROMANCE, SCHOOL, DARK_FANTASY, HEALING, COMEDY, HORROR, PIXAR, CYBERPUNK, CINEMATIC, VINTAGE
+프리미엄(유료): GHIBLI, MARVEL, LEGO, ANIMAL_CROSSING
+
+---
+
+## 4. 꿈 목록 / 관리
+
+### 내 꿈 목록
+GET /api/v1/dreams/?page=0&size=10
+Response: { "content": [...], "totalElements", "totalPages" }
+
+### 꿈 삭제
+DELETE /api/v1/dreams/{dreamId}
+
+### 라이브러리 추가
+POST /api/v1/dreams/{dreamId}/library
+
+### 즐겨찾기 토글
+PATCH /api/v1/dreams/{dreamId}/favorite
+
+---
+
+## 5. 라이브러리
+
+GET /api/v1/library/
+QueryParams:
+  - favorite=true/false  (즐겨찾기 필터)
+  - genre=ROMANCE        (장르 필터)
+  - search=검색어         (키워드 검색)
+  - sort=latest          (정렬)
+  - page=0&size=10
+
+---
+
+## 6. 꿈 채팅 (AI와 대화)
+
+### 채팅 전송
+POST /api/v1/dreams/{dreamId}/chat
+Body: { "message": "이 꿈은 무슨 의미인가요?" }
+Response: { "role": "ASSISTANT", "content": "..." }
+
+### 채팅 내역 조회
+GET /api/v1/dreams/{dreamId}/chat
+
+---
+
+## 7. 분석/통계 (PRO/ULTRA 전용)
+
+GET /api/v1/analytics/health-index     → 수면 건강 지수
+GET /api/v1/analytics/emotions?period=week|month|year  → 감정 분포 통계
+GET /api/v1/analytics/patterns         → 반복 패턴/상징 분석
+GET /api/v1/analysis/dashboard?period=7 → 종합 대시보드
+
+---
+
+## 8. 구독 / 결제
+
+### 사용량 조회 (앱 시작 시 필수 호출)
+GET /api/v1/subscriptions/usage
+Response: {
+  "tier": "FREE",                  // FREE | PLUS | PRO | ULTRA
+  "standardGenerationCount": 3,    // 이번 달 스탠다드 생성 횟수
+  "standardGenerationLimit": 10,   // 월 한도 (FREE=10, PLUS=5...)
+  "premiumGenerationCount": 0,
+  "canGenerateStandard": true,
+  "canGeneratePremium": false
+}
+
+### 결제 플로우
+1. POST /api/v1/subscriptions/checkout
+   Body: { "tier": "PLUS" }   // PLUS | PRO | ULTRA
+   Response: { "checkoutUrl": "https://polar.sh/...", "checkoutId": "...", "tier": "PLUS" }
+2. window.location.href = checkoutUrl  (Polar 결제 페이지로 이동)
+3. 결제 완료 후 http://localhost:5173 으로 리다이렉트
+4. 홈 복귀 후 /subscriptions/usage 재호출하여 티어 업데이트 반영
+
+### 구독 관리 포털 (유료 구독자)
+GET /api/v1/subscriptions/portal
+Response: { "portalUrl": "https://polar.sh/..." }
+→ portalUrl로 이동 (구독 해지/변경 가능)
+
+---
+
+## 9. 비회원 체험 (Guest)
+
+### 비회원 꿈 생성
+POST /api/v1/guest/dreams/
+Body: { "title", "content", "emotion", "selectedGenre" }
+Response: { "dreamId", "guestToken": "uuid" }
+→ guestToken을 로컬스토리지에 저장
+
+### 이후 모든 게스트 API는 ?token={guestToken} 필수
+GET  /api/v1/guest/dreams/{dreamId}?token=xxx
+GET  /api/v1/guest/dreams/{dreamId}/analysis?token=xxx  (폴링)
+POST /api/v1/guest/dreams/{dreamId}/webtoon?token=xxx   (스탠다드 장르만 가능)
+
+---
+
+## 10. 에러 처리 공통
+
+모든 에러 응답 형식:
+{ "success": false, "message": "에러 메시지" }
+
+주요 HTTP 상태코드:
+- 401: 토큰 만료 → refresh 후 재시도
+- 403: 권한 없음 (구독 한도 초과 or 프리미엄 전용 기능)
+- 404: 리소스 없음
+- 202: 비동기 처리 시작됨 (웹툰/AI 분석) → 폴링 필요
