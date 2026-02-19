@@ -1,11 +1,12 @@
 import { create } from 'zustand'
-import { UserProfile } from '@/types'
+import { UserProfile, SubscriptionTier, UsageInfo } from '@/types'
 import { authAPI, userAPI } from '@/services/api'
 import { setOnAuthExpired } from '@/services/apiClient'
 
 interface AuthStore {
     isLoggedIn: boolean
     user: UserProfile | null
+    usage: UsageInfo | null
     isLoading: boolean
 
     // Actions
@@ -13,6 +14,7 @@ interface AuthStore {
     testLogin: (userId?: number) => Promise<void>
     logout: () => void
     fetchUser: () => Promise<void>
+    refreshUsage: () => Promise<void>
     updateUser: (updates: Partial<UserProfile>) => void
     checkSaveLimit: () => boolean
     setLoggedIn: (token: string) => void
@@ -29,9 +31,19 @@ if (initToken) {
     }
 }
 
+// BE tier 문자열 → 프론트 SubscriptionTier 변환
+const parseTier = (tier?: string): SubscriptionTier => {
+    const t = tier?.toLowerCase()
+    if (t === 'plus') return 'plus'
+    if (t === 'pro') return 'pro'
+    if (t === 'ultra') return 'ultra'
+    return 'free'
+}
+
 export const useAuthStore = create<AuthStore>((set, get) => ({
     isLoggedIn: !!localStorage.getItem('accessToken'),
     user: null,
+    usage: null,
     isLoading: false,
 
     // OAuth2 로그인 후 토큰 설정
@@ -60,26 +72,28 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         await get().fetchUser()
     },
 
-    // 사용자 정보 BE에서 가져오기
+    // 사용자 정보 + 구독 usage 통합 조회
     fetchUser: async () => {
         try {
-            const userData = await userAPI.getMe()
+            const [userData, usageData] = await Promise.allSettled([
+                userAPI.getMe(),
+                userAPI.getUsage(),
+            ])
 
-            let usageData: any = {}
-            try {
-                usageData = await userAPI.getUsage()
-            } catch {
-                // 구독 정보 실패 시 무시
-            }
+            const user_d = userData.status === 'fulfilled' ? userData.value : null
+            const usage_d: UsageInfo | null = usageData.status === 'fulfilled' ? usageData.value : null
+
+            if (!user_d) return
 
             const user: UserProfile = {
-                id: String(userData.userId || userData.id),
-                name: userData.nickname || userData.name || '',
-                email: userData.email || '',
-                createdAt: new Date(userData.createdAt),
-                dreamCount: userData.dreamCount || 0,
-                subscriptionTier: usageData.tier?.toLowerCase() === 'premium' ? 'premium' : 'free',
-                monthlySaveCount: usageData.generationCount || 0,
+                id: String(user_d.userId || user_d.id),
+                name: user_d.nickname || user_d.name || '',
+                email: user_d.email || '',
+                createdAt: new Date(user_d.createdAt),
+                dreamCount: user_d.dreamCount || 0,
+                subscriptionTier: parseTier(usage_d?.tier),
+                monthlySaveCount: usage_d?.standardGenerationCount || 0,
+                usage: usage_d ?? undefined,
                 healthIndex: {
                     stressLevel: 0,
                     anxietyLevel: 0,
@@ -90,9 +104,24 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
                     lastUpdated: new Date(),
                 },
             }
-            set({ user })
+            set({ user, usage: usage_d })
         } catch (error) {
             console.error('Failed to fetch user:', error)
+        }
+    },
+
+    // 결제 완료 후 usage만 재조회 (tier 갱신)
+    refreshUsage: async () => {
+        try {
+            const usageData: UsageInfo = await userAPI.getUsage()
+            set((state) => ({
+                usage: usageData,
+                user: state.user
+                    ? { ...state.user, subscriptionTier: parseTier(usageData.tier), usage: usageData }
+                    : null,
+            }))
+        } catch (error) {
+            console.error('Failed to refresh usage:', error)
         }
     },
 
@@ -100,18 +129,21 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         authAPI.logout().catch(() => {})
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
-        set({ isLoggedIn: false, user: null })
+        set({ isLoggedIn: false, user: null, usage: null })
     },
 
     updateUser: (updates) => set((state) => ({
         user: state.user ? { ...state.user, ...updates } : null,
     })),
 
+    // usage 기반 생성 가능 여부 체크
     checkSaveLimit: () => {
-        const { user } = get()
+        const { usage, user } = get()
         if (!user) return false
-        if (user.subscriptionTier === 'premium') return true
-        return user.monthlySaveCount < 3
+        // usage 정보가 있으면 BE 판단 기준 사용
+        if (usage) return usage.canGenerateStandard
+        // fallback: tier 기반
+        return user.subscriptionTier !== 'free' || user.monthlySaveCount < 1
     },
 }))
 

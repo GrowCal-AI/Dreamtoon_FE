@@ -37,49 +37,48 @@ export const userAPI = {
     return data
   },
 
+  // 구독 사용량 조회 (subscriptions/usage)
   getUsage: async () => {
     const { data } = await apiClient.get('/subscriptions/usage')
+    return data
+  },
+
+  // 권한 및 사용량 상세 조회
+  getPermissions: async () => {
+    const { data } = await apiClient.get('/users/me/permissions')
     return data
   },
 }
 
 // === 꿈 API ===
 export const dreamAPI = {
-  // Step 1: 꿈 기록 시작
-  initiateDream: async (dreamContent: string): Promise<{ dreamId: number; systemMessage: string }> => {
-    const { data } = await apiClient.post('/dreams', { dreamContent })
+  // [방법 B] Step 1: 꿈 기록 시작 (title + content)
+  initiateDream: async (title: string, content: string): Promise<{ dreamId: number; status: string }> => {
+    const { data } = await apiClient.post('/dreams', { title, content })
     return data
   },
 
-  // Step 2: 감정 선택
-  selectEmotion: async (dreamId: number, primaryEmotion: string): Promise<{ systemMessage: string }> => {
-    const { data } = await apiClient.patch(`/dreams/${dreamId}/emotion`, { primaryEmotion })
-    return data
+  // [방법 B] Step 2: 감정 선택
+  selectEmotion: async (dreamId: number, emotion: string): Promise<void> => {
+    await apiClient.patch(`/dreams/${dreamId}/emotion`, { emotion })
   },
 
-  // Step 3: 상세 설명 입력 (비동기 분석 시작)
+  // [방법 B] Step 3: 장르 선택 → 비동기 AI 분석 시작 (202 Accepted)
   addDetails: async (
     dreamId: number,
-    detailedDescription: string,
-    realLifeContext?: string
+    selectedGenre: string
   ): Promise<{ dreamId: number; status: string; message: string }> => {
-    const { data } = await apiClient.patch(`/dreams/${dreamId}/details`, {
-      detailedDescription,
-      realLifeContext,
-    })
+    const { data } = await apiClient.patch(`/dreams/${dreamId}/details`, { selectedGenre })
     return data
   },
 
-  // 통합 꿈 생성 (FE 메인 플로우 - 한 번에 생성)
-  createDream: async (form: DreamInputForm): Promise<DreamEntry> => {
-    const { data } = await apiClient.post<DreamEntry>('/dreams/create', {
+  // [방법 A] 한 번에 전송 (권장)
+  createDream: async (form: DreamInputForm): Promise<{ dreamId: string; status: string }> => {
+    const { data } = await apiClient.post('/dreams/create', {
       title: form.title,
       content: form.content,
-      mainEmotion: form.mainEmotion?.toUpperCase(),
-      style: form.style,
-      characters: form.characters,
-      location: form.location,
-      lastScene: form.lastScene,
+      emotion: form.mainEmotion?.toUpperCase(),
+      selectedGenre: form.style?.toUpperCase(),
     })
     return data
   },
@@ -167,6 +166,26 @@ export const libraryAPI = {
   }) => {
     const { data } = await apiClient.get('/library', { params })
     return data
+  },
+}
+
+// === 구독 결제 API ===
+export const subscriptionAPI = {
+  // Polar Checkout Session 생성 → checkoutUrl로 이동
+  createCheckout: async (tier: 'PLUS' | 'PRO' | 'ULTRA'): Promise<{ checkoutUrl: string; checkoutId: string; tier: string }> => {
+    const { data } = await apiClient.post('/subscriptions/checkout', { tier })
+    return data
+  },
+
+  // 유료 구독자 전용: Polar 구독 관리 포털 URL 조회
+  getPortalUrl: async (): Promise<{ portalUrl: string }> => {
+    const { data } = await apiClient.get('/subscriptions/portal')
+    return data
+  },
+
+  // 관리자용 구독 티어 강제 변경 (개발/테스트용)
+  adminSetTier: async (userId: number, tier: 'FREE' | 'PLUS' | 'PRO' | 'ULTRA'): Promise<void> => {
+    await apiClient.patch(`/admin/users/${userId}/subscription`, { tier })
   },
 }
 
