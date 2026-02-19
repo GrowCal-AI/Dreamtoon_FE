@@ -4,9 +4,9 @@ import { useAuthStore } from '@/store/useAuthStore'
 import { Loader2 } from 'lucide-react'
 
 /**
- * OAuth2 로그인 콜백 페이지
- * BE SuccessHandler가 토큰을 sessionStorage에 저장 후 이 페이지로 리다이렉트
- * sessionStorage → localStorage로 이동 후 홈으로 이동
+ * OAuth2 로그인 콜백 페이지 (Hybrid 방식)
+ * - Access Token: URL 쿼리 (?accessToken=...) 로 전달 → 파싱 후 저장하고 URL에서 제거
+ * - Refresh Token: HttpOnly Cookie로 설정됨 (JS 접근 불가, API 요청 시 credentials: 'include')
  */
 export default function OAuthCallbackPage() {
     const navigate = useNavigate()
@@ -14,29 +14,23 @@ export default function OAuthCallbackPage() {
     const { setLoggedIn, fetchUser } = useAuthStore()
 
     useEffect(() => {
-        // 1순위: sessionStorage (BE SuccessHandler가 저장)
-        // 2순위: URL 쿼리 파라미터 (대체 방식)
-        const token =
-            sessionStorage.getItem('accessToken') ||
-            searchParams.get('token') ||
-            searchParams.get('accessToken')
+        const accessToken = searchParams.get('accessToken')
 
-        const refreshToken =
-            sessionStorage.getItem('refreshToken') ||
-            searchParams.get('refreshToken')
+        if (accessToken) {
+            // 1. URL 쿼리 제거 (보안: 주소창에 토큰 노출 방지)
+            window.history.replaceState({}, '', window.location.pathname)
 
-        if (token) {
-            // localStorage로 이동 (앱 전체에서 사용)
-            localStorage.setItem('accessToken', token)
-            if (refreshToken) {
-                localStorage.setItem('refreshToken', refreshToken)
+            // 2. Access Token 저장 (Zustand + localStorage)
+            setLoggedIn(accessToken)
+
+            // 3. 팝업 로그인인 경우 메인 창에 토큰 전달 후 닫기
+            if (window.opener) {
+                window.opener.postMessage({ type: 'OAUTH_SUCCESS', accessToken }, window.location.origin)
+                window.close()
+                return
             }
 
-            // sessionStorage 정리
-            sessionStorage.removeItem('accessToken')
-            sessionStorage.removeItem('refreshToken')
-
-            setLoggedIn(token)
+            // 4. 사용자 정보 조회 후 홈으로 이동
             fetchUser().then(() => {
                 navigate('/', { replace: true })
             })

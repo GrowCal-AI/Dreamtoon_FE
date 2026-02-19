@@ -7,6 +7,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Refresh Token이 HttpOnly Cookie로 전달되므로 필수
 })
 
 // 요청 인터셉터: JWT 토큰이 있을 때만 추가
@@ -37,28 +38,24 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
 
-    // 401 에러 시 토큰 갱신 시도
+    // 401 에러 시 토큰 갱신 시도 (Refresh Token은 HttpOnly Cookie로 전달)
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
 
-      const refreshToken = localStorage.getItem('refreshToken')
-      if (refreshToken) {
-        try {
-          const res = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken })
-          const newToken = res.data?.data?.accessToken || res.data?.accessToken
-          if (newToken) {
-            localStorage.setItem('accessToken', newToken)
-            originalRequest.headers.Authorization = `Bearer ${newToken}`
-            return apiClient(originalRequest)
-          }
-        } catch {
-          // 갱신 실패 → 토큰 정리 + 스토어 동기화
+      try {
+        const res = await apiClient.post('/auth/refresh', {})
+        const raw = res.data
+        const newToken = raw?.data?.accessToken ?? raw?.accessToken
+        if (newToken) {
+          localStorage.setItem('accessToken', newToken)
+          originalRequest.headers.Authorization = `Bearer ${newToken}`
+          return apiClient(originalRequest)
         }
+      } catch {
+        // 갱신 실패 (쿠키 만료 등) → 토큰 정리 + 스토어 동기화
       }
 
-      // 토큰 정리
       localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
       onAuthExpired?.()
     }
 

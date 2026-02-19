@@ -31,27 +31,33 @@ export interface HealthAnalysis {
 interface HealthStore {
     analysis: HealthAnalysis | null
     isLoading: boolean
+    fetchError: string | null
     fetchAnalysis: (userId: string) => Promise<void>
 }
 
 export const useHealthStore = create<HealthStore>((set) => ({
     analysis: null,
     isLoading: false,
+    fetchError: null,
 
     fetchAnalysis: async (_userId: string) => {
-        set({ isLoading: true })
+        set({ isLoading: true, fetchError: null })
 
         try {
-            const healthData = await analyticsAPI.getHealthIndex()
-            const emotionData = await analyticsAPI.getEmotionAnalysis('week')
+            const [healthData, emotionData] = await Promise.all([
+                analyticsAPI.getHealthIndex().catch(() => null),
+                analyticsAPI.getEmotionAnalysis('week').catch(() => null),
+            ])
 
-            const dist = healthData.emotionDistribution || emotionData.emotionDistribution || {}
+            const dist =
+                (healthData?.emotionDistribution ?? emotionData?.emotionDistribution) || {}
+            const dailyData = emotionData?.dailyData ?? []
 
             const analysis: HealthAnalysis = {
                 userId: _userId,
                 lastUpdated: new Date(),
-                stressIndex: healthData.stressLevel ?? 0,
-                sleepQuality: healthData.sleepQuality ?? 50,
+                stressIndex: healthData?.stressLevel ?? 0,
+                sleepQuality: healthData?.sleepQuality ?? 50,
                 emotionDistribution: {
                     joy: dist.JOY ?? dist.joy ?? 0,
                     anxiety: dist.ANXIETY ?? dist.anxiety ?? 0,
@@ -60,21 +66,28 @@ export const useHealthStore = create<HealthStore>((set) => ({
                     surprise: dist.SURPRISE ?? dist.surprise ?? 0,
                     peace: dist.PEACE ?? dist.peace ?? 0,
                 },
-                weeklyStats: (emotionData.dailyData || []).map((d: any) => ({
-                    date: d.date,
-                    dreamId: d.dreamId || '',
-                    primaryEmotion: (d.primaryEmotion || 'peace').toLowerCase() as EmotionType,
-                    sleepScore: d.sleepScore || 3,
+                weeklyStats: dailyData.map((d: Record<string, unknown>) => ({
+                    date: String(d.date ?? ''),
+                    dreamId: String(d.dreamId ?? ''),
+                    primaryEmotion: (String(d.primaryEmotion ?? 'peace').toLowerCase()) as EmotionType,
+                    sleepScore: Number(d.sleepScore ?? 3),
                 })),
-                currentInsight: healthData.insights?.[0]
-                    ? { message: healthData.insights[0], recommendation: healthData.insights[1] || '' }
-                    : undefined,
+                currentInsight:
+                    healthData?.insights?.[0] != null
+                        ? {
+                              message: healthData.insights[0],
+                              recommendation: healthData.insights[1] ?? '',
+                          }
+                        : undefined,
             }
 
-            set({ analysis, isLoading: false })
+            set({ analysis, isLoading: false, fetchError: null })
         } catch (error) {
             console.error('Failed to fetch health analysis:', error)
-            set({ isLoading: false })
+            set({
+                isLoading: false,
+                fetchError: '분석 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.',
+            })
         }
     },
 }))
