@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+
 import { BarChart3, Library, LogIn, LogOut, User } from 'lucide-react'
 import LogoImage from '@/asset/Group 2.svg'
+
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/store/useAuthStore'
 import LoginModal from '@/components/common/LoginModal'
@@ -31,7 +33,7 @@ export default function Header() {
                         <img
                             src={LogoImage}
                             alt="Dreamtoon Lab Logo"
-                            className="h-[18px] md:h-[20px] w-auto object-contain"
+                            className="h-[14px] md:h-[20px] w-auto object-contain"
                             style={{ imageRendering: '-webkit-optimize-contrast' } as React.CSSProperties}
                         />
                     </Link>
