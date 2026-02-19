@@ -1,11 +1,45 @@
 import { useState, useMemo, memo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, Heart, Calendar } from "lucide-react";
+import { ChevronDown, Heart, Calendar, LogIn, Loader2 } from "lucide-react";
 import { useDreamStore } from "@/store/useDreamStore";
-import { libraryAPI } from "@/services/api";
+import { useAuthStore } from "@/store/useAuthStore";
+import { libraryAPI, dreamAPI } from "@/services/api";
 import { DreamEntry, DreamStyle, formatDateShort } from "@/types";
 import GenerationResult from "@/components/common/GenerationResult";
+
+/** BE 라이브러리 API 응답 항목(dreamId, thumbnailUrl 등)을 DreamEntry 형태로 변환 */
+function mapLibraryItemToDreamEntry(item: Record<string, unknown>): DreamEntry {
+  const id = String(item.dreamId ?? item.id ?? "");
+  const recordedAt = String(item.recordedAt ?? item.createdAt ?? new Date().toISOString());
+  const createdAt = String(item.createdAt ?? item.recordedAt ?? new Date().toISOString());
+  return {
+    id,
+    userId: String(item.userId ?? ""),
+    title: String(item.title ?? "제목 없음"),
+    content: String(item.content ?? ""),
+    recordedAt,
+    createdAt,
+    inputMethod: "text",
+    style: (item.style ?? item.genre ?? "healing") as DreamStyle,
+    format: "webtoon",
+    scenes: Array.isArray(item.scenes) ? (item.scenes as DreamEntry["scenes"]) : [],
+    analysis: (item.analysis as DreamEntry["analysis"]) ?? {
+      emotions: {} as DreamEntry["analysis"]["emotions"],
+      tensionLevel: 0,
+      controlLevel: 0,
+      isNightmare: false,
+      repeatingSymbols: [],
+      relationshipPatterns: [],
+      hasResolution: false,
+    },
+    webtoonUrl: item.webtoonUrl ? String(item.webtoonUrl) : item.thumbnailUrl ? String(item.thumbnailUrl) : undefined,
+    videoUrl: item.videoUrl ? String(item.videoUrl) : undefined,
+    tags: Array.isArray(item.tags) ? (item.tags as string[]) : [],
+    isFavorite: Boolean(item.isFavorite),
+    isInLibrary: true,
+  };
+}
 
 // Memoized Dream Card
 const DreamCard = memo(
@@ -62,8 +96,8 @@ const DreamCard = memo(
               {dream.style}
             </span>
           </div>
-          <p className="text-sm text-gray-300 line-clamp-2">{dream.content}</p>
-          {dream.tags.length > 0 && (
+          <p className="text-sm text-gray-300 line-clamp-2">{dream.content || "꿈 기록"}</p>
+          {(dream.tags?.length ?? 0) > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {dream.tags.slice(0, 3).map((tag, i) => (
                 <span
@@ -85,50 +119,48 @@ DreamCard.displayName = "DreamCard";
 
 export default function LibraryPage() {
   const { dreams } = useDreamStore();
+  const { isLoggedIn } = useAuthStore();
   const navigate = useNavigate();
   const [selectedDream, setSelectedDream] = useState<DreamEntry | null>(null);
+  const [fullDreamDetail, setFullDreamDetail] = useState<DreamEntry | null>(null);
   const [libraryDreams, setLibraryDreams] = useState<DreamEntry[]>([]);
 
-  // BE에서 라이브러리 목록 가져오기
+  // BE에서 라이브러리 목록 가져오기 (로그인 시에만)
   useEffect(() => {
+    if (!isLoggedIn) {
+      setLibraryDreams([]);
+      return;
+    }
     const fetchLibrary = async () => {
       try {
         const result = await libraryAPI.getLibrary();
-        const all = result.content || (result as unknown as DreamEntry[]);
-        setLibraryDreams(all);
+        const raw = result?.dreams ?? result?.content ?? (Array.isArray(result) ? result : []);
+        const list = Array.isArray(raw) ? raw : [];
+        const mapped = list.map((item: Record<string, unknown>) => mapLibraryItemToDreamEntry(item));
+        setLibraryDreams(mapped);
       } catch {
-        // 미로그인 시 로컬 스토어 사용
         setLibraryDreams(dreams);
       }
     };
     fetchLibrary();
-  }, [dreams]);
+  }, [isLoggedIn, dreams]);
 
   const [filterStyle, setFilterStyle] = useState<DreamStyle | "all">("all");
   const [showFavorites, setShowFavorites] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // Filtered dreams (useMemo)
   const filteredDreams = useMemo(() => {
     let result = [...libraryDreams];
-
-    // Style filter
     if (filterStyle !== "all") {
       result = result.filter((dream) => dream.style === filterStyle);
     }
-
-    // Favorites filter
     if (showFavorites) {
       result = result.filter((dream) => dream.isFavorite);
     }
-
-    // Sort by Date (Default)
     result.sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime());
-
     return result;
-  }, [dreams, filterStyle, showFavorites]);
+  }, [libraryDreams, filterStyle, showFavorites]);
 
-  // Body scroll lock
   useEffect(() => {
     if (selectedDream) {
       document.body.style.overflow = "hidden";
@@ -140,7 +172,6 @@ export default function LibraryPage() {
     };
   }, [selectedDream]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -148,15 +179,53 @@ export default function LibraryPage() {
         setIsDropdownOpen(false);
       }
     };
-
     if (isDropdownOpen) {
       document.addEventListener("click", handleClickOutside);
     }
-
     return () => {
       document.removeEventListener("click", handleClickOutside);
     };
   }, [isDropdownOpen]);
+
+  // 카드 클릭 시 상세 조회(4컷 scenes 포함) 후 모달 표시
+  useEffect(() => {
+    if (!selectedDream) {
+      setFullDreamDetail(null);
+      return;
+    }
+    let cancelled = false;
+    dreamAPI
+      .getDream(selectedDream.id)
+      .then((full) => {
+        if (!cancelled) setFullDreamDetail(full);
+      })
+      .catch(() => {
+        if (!cancelled) setFullDreamDetail(selectedDream);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDream]);
+
+  // 미로그인 시 로그인 유도 화면
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-full pt-20 pb-24 px-5 flex flex-col items-center justify-center bg-[#0F0C29]">
+        <div className="text-center max-w-sm space-y-6">
+          <p className="text-gray-400 text-lg">로그인이 필요합니다.</p>
+          <p className="text-gray-500 text-sm">로그인 후 나만의 꿈 라이브러리를 이용할 수 있어요.</p>
+          <button
+            type="button"
+            onClick={() => navigate("/login")}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold hover:opacity-90 transition-opacity"
+          >
+            <LogIn className="w-5 h-5" />
+            로그인하기
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full pt-20 pb-24 px-5 xl:pt-28 xl:px-8 relative overflow-y-auto scrollbar-hide">
@@ -283,12 +352,10 @@ export default function LibraryPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="glass-card p-12 text-center"
+            className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-12 text-center min-h-[200px] flex flex-col items-center justify-center"
           >
-            <div className="text-gray-500 mb-4">
-              <p className="text-lg">기록된 꿈이 없습니다</p>
-              <p className="text-sm mt-2">새로운 꿈을 기록해보세요!</p>
-            </div>
+            <p className="text-lg font-medium text-gray-300">기록된 꿈이 없습니다</p>
+            <p className="text-sm text-gray-500 mt-2">웹툰 결과에서 &#39;라이브러리에 저장&#39;을 누르면 여기에 쌓여요.</p>
           </motion.div>
         ) : (
           <motion.div
@@ -310,7 +377,7 @@ export default function LibraryPage() {
         )}
       </div>
 
-      {/* Full Screen Generation Result Modal */}
+      {/* Full Screen Generation Result Modal (4컷은 상세 조회 후 scenes로 표시) */}
       <AnimatePresence>
         {selectedDream && (
           <motion.div
@@ -319,20 +386,30 @@ export default function LibraryPage() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-[#0F0C29] overflow-y-auto max-h-screen"
           >
-            <GenerationResult
-              title={selectedDream.title}
-              date={formatDateShort(selectedDream.recordedAt)}
-              mediaUrl={
-                selectedDream.webtoonUrl || selectedDream.videoUrl || ""
-              }
-              type={selectedDream.format}
-              isSaved={true}
-              onSave={() => {}}
-              onReset={() => navigate("/")}
-              onTalkMore={() => alert("꿈 대화하기 기능은 준비 중입니다.")}
-              onClose={() => setSelectedDream(null)}
-              initialFavorite={selectedDream.isFavorite}
-            />
+            {fullDreamDetail ? (
+              <GenerationResult
+                title={fullDreamDetail.title}
+                date={formatDateShort(fullDreamDetail.recordedAt)}
+                mediaUrl={
+                  fullDreamDetail.webtoonUrl || fullDreamDetail.videoUrl || ""
+                }
+                type={fullDreamDetail.format}
+                isSaved={true}
+                scenes={fullDreamDetail.scenes}
+                onSave={() => {}}
+                onReset={() => navigate("/")}
+                onTalkMore={() => alert("꿈 대화하기 기능은 준비 중입니다.")}
+                onClose={() => {
+                  setSelectedDream(null);
+                  setFullDreamDetail(null);
+                }}
+                initialFavorite={fullDreamDetail.isFavorite}
+              />
+            ) : (
+              <div className="min-h-screen flex items-center justify-center">
+                <Loader2 className="w-10 h-10 text-purple-400 animate-spin" />
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

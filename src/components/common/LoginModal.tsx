@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Check, Loader2 } from 'lucide-react'
-import { useAuthStore } from '@/store/useAuthStore'
+import { X, Check } from 'lucide-react'
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1'
+const BE_BASE_URL = API_BASE_URL.replace('/api/v1', '')
 
 interface LoginModalProps {
     isOpen: boolean
@@ -9,23 +11,16 @@ interface LoginModalProps {
     onLoginSuccess: () => void
 }
 
-const LoginModal = ({ isOpen, onClose, onLoginSuccess }: LoginModalProps) => {
-    const { testLogin } = useAuthStore()
-    const [isLoggingIn, setIsLoggingIn] = useState(false)
-
-    const handleQuickLogin = async () => {
-        setIsLoggingIn(true)
-        try {
-            await testLogin(1)
-            onLoginSuccess()
-        } catch (error) {
-            console.error('Login failed:', error)
-        } finally {
-            setIsLoggingIn(false)
-        }
+const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
+    const handleKakaoLogin = () => {
+        window.location.href = `${BE_BASE_URL}/oauth2/authorization/kakao`
     }
 
-    return (
+    const handleGoogleLogin = () => {
+        window.location.href = `${BE_BASE_URL}/oauth2/authorization/google`
+    }
+
+    return createPortal(
         <AnimatePresence>
             {isOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -84,21 +79,23 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }: LoginModalProps) => {
                                 ))}
                             </div>
 
-                            {/* Login Button */}
+                            {/* 소셜 로그인 */}
                             <div className="space-y-3">
                                 <button
-                                    onClick={handleQuickLogin}
-                                    disabled={isLoggingIn}
-                                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
+                                    type="button"
+                                    onClick={handleKakaoLogin}
+                                    className="w-full py-3.5 rounded-xl bg-[#FEE500] text-[#000000] font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                                 >
-                                    {isLoggingIn ? (
-                                        <>
-                                            <Loader2 size={18} className="animate-spin" />
-                                            로그인 중...
-                                        </>
-                                    ) : (
-                                        '바로 로그인하기'
-                                    )}
+                                    <span>Kakao</span>
+                                    <span>로 로그인하기</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleGoogleLogin}
+                                    className="w-full py-3.5 rounded-xl bg-white border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+                                    Google로 로그인하기
                                 </button>
                             </div>
 
@@ -109,7 +106,8 @@ const LoginModal = ({ isOpen, onClose, onLoginSuccess }: LoginModalProps) => {
                     </motion.div>
                 </div>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     )
 }
 

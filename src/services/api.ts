@@ -12,15 +12,16 @@ export const authAPI = {
     return data
   },
 
-  refresh: async (refreshToken: string) => {
-    const { data } = await apiClient.post('/auth/refresh', { refreshToken })
+  /** Refresh Token은 HttpOnly Cookie로 전달됨. credentials 포함해 호출하면 됨. */
+  refresh: async () => {
+    const { data } = await apiClient.post('/auth/refresh', {})
     return data
   },
 
   logout: async () => {
     await apiClient.post('/auth/logout')
     localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
+    // refreshToken은 HttpOnly Cookie → 서버에서 로그아웃 시 제거됨
   },
 }
 
@@ -118,7 +119,7 @@ export const dreamAPI = {
     genre: string
   ): Promise<{ dreamId: number; status: string; message: string }> => {
     const { data } = await apiClient.post(`/dreams/${dreamId}/webtoon`, {
-      selectedGenre: genre.toUpperCase(),
+      selectedGenre: genre,
     })
     return data
   },

@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useHealthStore, DailyDreamStat } from "@/store/useHealthStore";
-import { Loader2, X, ChevronRight, Image as ImageIcon } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Loader2, X, ChevronRight, Image as ImageIcon, LogIn } from "lucide-react";
 
 import {
   RadialBarChart,
@@ -449,17 +450,53 @@ const CoachingSection = ({
 };
 
 export default function AnalyticsPage() {
-  const { fetchAnalysis, isLoading, analysis } = useHealthStore();
+  const { isLoggedIn } = useAuthStore();
+  const { fetchAnalysis, isLoading, analysis, fetchError } = useHealthStore();
+  const navigate = useNavigate();
   const [selectedStat, setSelectedStat] = useState<DailyDreamStat | null>(null);
 
   useEffect(() => {
-    fetchAnalysis("current-user");
-  }, [fetchAnalysis]);
+    if (isLoggedIn) fetchAnalysis("current-user");
+  }, [isLoggedIn, fetchAnalysis]);
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-full pt-20 pb-24 px-5 flex flex-col items-center justify-center bg-[#0F0C29]">
+        <div className="text-center max-w-sm space-y-6">
+          <p className="text-gray-400 text-lg">로그인이 필요합니다.</p>
+          <p className="text-gray-500 text-sm">로그인 후 꿈 분석을 이용할 수 있어요.</p>
+          <button
+            type="button"
+            onClick={() => navigate("/login")}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold hover:opacity-90 transition-opacity"
+          >
+            <LogIn className="w-5 h-5" />
+            로그인하기
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading && !analysis) {
     return (
       <div className="min-h-full flex items-center justify-center bg-[#0F0C29]">
         <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="min-h-full pt-20 pb-24 px-5 flex flex-col items-center justify-center bg-[#0F0C29]">
+        <p className="text-gray-400 mb-4">{fetchError}</p>
+        <button
+          type="button"
+          onClick={() => fetchAnalysis("current-user")}
+          className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-medium transition-colors"
+        >
+          다시 시도
+        </button>
       </div>
     );
   }

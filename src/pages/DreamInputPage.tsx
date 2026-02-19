@@ -323,16 +323,11 @@ export default function DreamInputPage() {
   };
 
   // 자동 로그인: 토큰이 없거나 무효하면 새로 발급
-  const sessionVerifiedRef = useRef(false);
   const ensureLoggedIn = async () => {
-    if (sessionVerifiedRef.current && useAuthStore.getState().isLoggedIn) return;
-
-    // 기존 토큰 정리 후 새로 발급 (이전 서버 토큰 불일치 방지)
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    useAuthStore.setState({ isLoggedIn: false });
+    // 이미 로그인된 상태(OAuth 포함)면 건드리지 않음
+    if (useAuthStore.getState().isLoggedIn) return;
+    // 미로그인 시 개발용 테스트 계정으로 자동 로그인
     await useAuthStore.getState().testLogin(1);
-    sessionVerifiedRef.current = true;
   };
 
   const handleContentSubmit = async (e?: React.FormEvent) => {
@@ -500,15 +495,21 @@ export default function DreamInputPage() {
         return;
       }
 
-      // BE에서 이미 생성된 dream을 라이브러리에 추가
-      if (createdDreamId) {
-        await dreamAPI.addToLibrary(createdDreamId);
+      if (!createdDreamId) {
+        alert("저장할 꿈 정보가 없습니다. 다시 시도해주세요.");
+        return;
       }
 
+      await dreamAPI.addToLibrary(createdDreamId);
       setIsSaved(true);
       setPendingSave(false);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Failed to save dream:", error);
+      const message =
+        (error as { response?: { status?: number } })?.response?.status === 401
+          ? "로그인이 필요합니다. 로그인 후 다시 시도해주세요."
+          : "라이브러리 저장에 실패했습니다. 다시 시도해주세요.";
+      alert(message);
     }
   };
 
