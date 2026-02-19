@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { UserProfile, SubscriptionTier, UsageInfo } from '@/types'
-import { authAPI, userAPI } from '@/services/api'
+import { authAPI, userAPI, subscriptionAPI } from '@/services/api'
 import { setOnAuthExpired } from '@/services/apiClient'
 
 interface AuthStore {
@@ -85,15 +85,30 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
             if (!user_d) return
 
+            let finalUsage = usage_d
+
+            // FREE tier인 경우 Polar에서 기존 구독 정보 동기화 시도 (웹훅 누락 복구)
+            if (parseTier(usage_d?.tier) === 'free') {
+                try {
+                    const synced = await subscriptionAPI.syncSubscription()
+                    if (synced?.tier && synced.tier !== 'FREE') {
+                        finalUsage = synced
+                        console.info('[Auth] Polar 구독 동기화 성공:', synced.tier)
+                    }
+                } catch {
+                    // sync 실패는 무시 (Polar에 구독이 없는 정상 케이스)
+                }
+            }
+
             const user: UserProfile = {
                 id: String(user_d.userId || user_d.id),
                 name: user_d.nickname || user_d.name || '',
                 email: user_d.email || '',
                 createdAt: new Date(user_d.createdAt),
                 dreamCount: user_d.dreamCount || 0,
-                subscriptionTier: parseTier(usage_d?.tier),
-                monthlySaveCount: usage_d?.standardGenerationCount || 0,
-                usage: usage_d ?? undefined,
+                subscriptionTier: parseTier(finalUsage?.tier),
+                monthlySaveCount: finalUsage?.standardGenerationCount || 0,
+                usage: finalUsage ?? undefined,
                 healthIndex: {
                     stressLevel: 0,
                     anxietyLevel: 0,
@@ -104,7 +119,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
                     lastUpdated: new Date(),
                 },
             }
-            set({ user, usage: usage_d })
+            set({ user, usage: finalUsage })
         } catch (error) {
             console.error('Failed to fetch user:', error)
         }

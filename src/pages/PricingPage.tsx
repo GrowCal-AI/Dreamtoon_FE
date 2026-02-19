@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Check, Sparkles, X, Loader2 } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
 import { subscriptionAPI } from '@/services/api'
+import { AxiosError } from 'axios'
 
 // Polar Product IDs
 const POLAR_PRODUCT_IDS = {
@@ -103,8 +104,9 @@ interface PricingPageProps {
 
 export default function PricingPage({ onClose, isModal = false }: PricingPageProps) {
   const navigate = useNavigate()
-  const { isLoggedIn, user } = useAuthStore()
+  const { isLoggedIn, user, refreshUsage } = useAuthStore()
   const [loadingTier, setLoadingTier] = useState<Tier | null>(null)
+  const [syncMessage, setSyncMessage] = useState<string | null>(null)
 
   const currentTier = (user?.subscriptionTier?.toUpperCase() ?? 'FREE') as Tier
 
@@ -126,12 +128,28 @@ export default function PricingPage({ onClose, isModal = false }: PricingPagePro
     }
 
     setLoadingTier(plan.tier)
+    setSyncMessage(null)
     try {
       // 백엔드에서 Polar Checkout Session URL 받아오기
       const result = await subscriptionAPI.createCheckout(plan.tier as 'PLUS' | 'PRO' | 'ULTRA')
-      // Polar 결제 페이지로 이동 (새 탭 또는 현재 탭)
+      // Polar 결제 페이지로 이동
       window.location.href = result.checkoutUrl
     } catch (err) {
+      const axiosErr = err as AxiosError<{ code?: string; message?: string }>
+      const errorCode = axiosErr.response?.data?.code
+
+      // "이미 구독 중" 에러 → Polar에서 기존 구독 정보를 동기화
+      if (errorCode === 'SUB009' || axiosErr.response?.status === 409) {
+        try {
+          await subscriptionAPI.syncSubscription()
+          await refreshUsage()
+          setSyncMessage('기존 구독 정보를 동기화했습니다! 플랜이 업데이트되었습니다.')
+        } catch {
+          setSyncMessage('구독 동기화에 실패했습니다. 잠시 후 다시 시도해주세요.')
+        }
+        return
+      }
+
       console.error('Checkout 생성 실패:', err)
       // 백엔드 API 미구현 시 Polar Checkout Link로 직접 이동 (fallback)
       const fallbackUrls: Record<string, string> = {
@@ -175,6 +193,21 @@ export default function PricingPage({ onClose, isModal = false }: PricingPagePro
           </p>
         </motion.div>
       </div>
+
+      {/* 동기화 메시지 */}
+      {syncMessage && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`max-w-2xl mx-auto mb-6 px-4 py-3 rounded-xl text-center text-sm font-medium ${
+            syncMessage.includes('실패')
+              ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+              : 'bg-green-500/20 text-green-300 border border-green-500/30'
+          }`}
+        >
+          {syncMessage}
+        </motion.div>
+      )}
 
       {/* 플랜 카드 그리드 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">

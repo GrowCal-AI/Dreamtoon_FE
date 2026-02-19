@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CheckCircle, XCircle, Loader2, Sparkles } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
+import { subscriptionAPI } from '@/services/api'
 
 export default function PaymentSuccessPage() {
   const navigate = useNavigate()
@@ -19,10 +20,18 @@ export default function PaymentSuccessPage() {
       return
     }
 
-    // 결제 완료: Webhook 처리 시간 고려 후 usage 재조회 → tier 자동 갱신
+    // 결제 완료: Polar 구독 동기화 후 usage 재조회 → tier 자동 갱신
+    // (로컬 환경에서는 웹훅이 도달하지 못하므로 sync로 직접 Polar에서 구독 정보를 가져옴)
     const refresh = async () => {
       try {
         await new Promise((r) => setTimeout(r, 2000))
+        // 1) Polar → 로컬 DB 동기화 (웹훅 누락 대비)
+        try {
+          await subscriptionAPI.syncSubscription()
+        } catch {
+          // sync 실패해도 계속 진행 (웹훅으로 이미 처리된 경우)
+        }
+        // 2) 갱신된 usage 조회
         await refreshUsage()
         setStatus('success')
       } catch {

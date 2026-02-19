@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import HomePage from './pages/HomePage'
@@ -7,11 +8,20 @@ import AnalyticsPage from './pages/AnalyticsPage'
 import LibraryPage from './pages/LibraryPage'
 import PricingPage from './pages/PricingPage'
 import PaymentSuccessPage from './pages/PaymentSuccessPage'
-
 import LoginPage from './pages/LoginPage'
 import OAuthCallbackPage from './pages/OAuthCallbackPage'
+import { useAuthStore } from './store/useAuthStore'
 
 function App() {
+  const { isLoggedIn, user, fetchUser } = useAuthStore()
+
+  // 앱 로드 시 토큰이 있으면 사용자 정보 + 구독 정보 조회
+  useEffect(() => {
+    if (isLoggedIn && !user) {
+      fetchUser()
+    }
+  }, [isLoggedIn, user, fetchUser])
+
   return (
     <Router>
       <Routes>

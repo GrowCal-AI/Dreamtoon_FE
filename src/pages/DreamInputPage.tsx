@@ -268,7 +268,7 @@ export default function DreamInputPage() {
   const initializedRef = useRef(false);
 
   const { addDream, updateDream } = useDreamStore();
-  const { isLoggedIn, login, checkSaveLimit } = useAuthStore();
+  const { isLoggedIn, user, login, checkSaveLimit } = useAuthStore();
 
   const {
     step,
@@ -289,7 +289,6 @@ export default function DreamInputPage() {
     setIsSaved,
     showPremiumModal,
     setShowPremiumModal,
-    isPremium,
     reset,
   } = useChatStore();
 
@@ -373,8 +372,9 @@ export default function DreamInputPage() {
       // 로그인 보장 (토큰 무효 시 자동 재발급)
       await ensureLoggedIn();
 
-      // Step 1: BE에 꿈 기록 시작
-      const initResult = await dreamAPI.initiateDream(content);
+      // Step 1: BE에 꿈 기록 시작 (title은 content 앞부분으로 자동 생성)
+      const autoTitle = content.length > 30 ? content.slice(0, 30) + '...' : content;
+      const initResult = await dreamAPI.initiateDream(autoTitle, content);
       const dreamId = initResult?.dreamId;
 
       if (!dreamId) {
@@ -454,7 +454,7 @@ export default function DreamInputPage() {
     label: string;
     isPremium: boolean;
   }) => {
-    if (style.isPremium && !isPremium) {
+    if (style.isPremium && (!user || user.subscriptionTier === 'free')) {
       setModalType("style");
       setShowPremiumModal(true);
       return;
@@ -615,7 +615,7 @@ export default function DreamInputPage() {
     navigate("/");
   };
 
-  const handleSubscribe = () => {
+  const handleSubscribe = async () => {
     if (!isLoggedIn) {
       navigate("/login");
       return;

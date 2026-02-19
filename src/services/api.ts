@@ -183,6 +183,12 @@ export const subscriptionAPI = {
     return data
   },
 
+  // Polar 구독 정보를 로컬 DB에 동기화 (웹훅 누락 복구용)
+  syncSubscription: async () => {
+    const { data } = await apiClient.post('/subscriptions/sync')
+    return data
+  },
+
   // 관리자용 구독 티어 강제 변경 (개발/테스트용)
   adminSetTier: async (userId: number, tier: 'FREE' | 'PLUS' | 'PRO' | 'ULTRA'): Promise<void> => {
     await apiClient.patch(`/admin/users/${userId}/subscription`, { tier })
