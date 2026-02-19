@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown, Heart, Calendar } from "lucide-react";
 import { useDreamStore } from "@/store/useDreamStore";
-import { DreamEntry, DreamStyle } from "@/types";
+import { libraryAPI } from "@/services/api";
+import { DreamEntry, DreamStyle, formatDateShort } from "@/types";
 import GenerationResult from "@/components/common/GenerationResult";
 
 // Memoized Dream Card
@@ -55,7 +56,7 @@ const DreamCard = memo(
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-400 flex items-center">
               <Calendar className="w-4 h-4 mr-1" />
-              {dream.recordedAt.toLocaleDateString("ko-KR")}
+              {formatDateShort(dream.recordedAt)}
             </span>
             <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full">
               {dream.style}
@@ -86,6 +87,22 @@ export default function LibraryPage() {
   const { dreams } = useDreamStore();
   const navigate = useNavigate();
   const [selectedDream, setSelectedDream] = useState<DreamEntry | null>(null);
+  const [libraryDreams, setLibraryDreams] = useState<DreamEntry[]>([]);
+
+  // BE에서 라이브러리 목록 가져오기
+  useEffect(() => {
+    const fetchLibrary = async () => {
+      try {
+        const result = await libraryAPI.getLibrary();
+        const all = result.content || (result as unknown as DreamEntry[]);
+        setLibraryDreams(all);
+      } catch {
+        // 미로그인 시 로컬 스토어 사용
+        setLibraryDreams(dreams);
+      }
+    };
+    fetchLibrary();
+  }, [dreams]);
 
   const [filterStyle, setFilterStyle] = useState<DreamStyle | "all">("all");
   const [showFavorites, setShowFavorites] = useState(false);
@@ -93,7 +110,7 @@ export default function LibraryPage() {
 
   // Filtered dreams (useMemo)
   const filteredDreams = useMemo(() => {
-    let result = [...dreams];
+    let result = [...libraryDreams];
 
     // Style filter
     if (filterStyle !== "all") {
@@ -106,7 +123,7 @@ export default function LibraryPage() {
     }
 
     // Sort by Date (Default)
-    result.sort((a, b) => b.recordedAt.getTime() - a.recordedAt.getTime());
+    result.sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime());
 
     return result;
   }, [dreams, filterStyle, showFavorites]);
@@ -304,7 +321,7 @@ export default function LibraryPage() {
           >
             <GenerationResult
               title={selectedDream.title}
-              date={selectedDream.recordedAt.toLocaleDateString("ko-KR")}
+              date={formatDateShort(selectedDream.recordedAt)}
               mediaUrl={
                 selectedDream.webtoonUrl || selectedDream.videoUrl || ""
               }

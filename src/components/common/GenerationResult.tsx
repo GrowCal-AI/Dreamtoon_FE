@@ -14,12 +14,19 @@ import {
 } from "lucide-react";
 import Header from "@/components/common/Header";
 
+interface SceneData {
+  id?: string;
+  sceneNumber?: number;
+  imageUrl?: string;
+}
+
 interface GenerationResultProps {
   title: string;
   date: string;
   mediaUrl: string;
   type: "webtoon" | "animation";
   isSaved: boolean;
+  scenes?: SceneData[];
   onSave?: () => void;
   onReset?: () => void;
   onTalkMore?: () => void;
@@ -33,12 +40,15 @@ const GenerationResult = ({
   mediaUrl,
   type,
   isSaved,
+  scenes,
   onSave,
   onReset,
   onTalkMore,
   onClose,
   initialFavorite = false,
 }: GenerationResultProps) => {
+  const panelImages = scenes?.filter((s) => s.imageUrl).map((s) => s.imageUrl!) || [];
+  const has4Panels = panelImages.length >= 4;
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
@@ -125,35 +135,71 @@ const GenerationResult = ({
         </div>
       </motion.div>
 
-      {/* 2. Main Content Area (Full Screen Image/Video) */}
+      {/* 2. Main Content Area */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="absolute inset-0 w-full h-full flex flex-col items-center justify-center overflow-hidden pt-44 pb-32"
+        className="absolute inset-0 w-full h-full flex flex-col items-center overflow-y-auto pt-44 pb-32"
       >
-        <div
-          className={`w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-white/10 relative ${type === "webtoon" ? "h-[60vh]" : "aspect-[3/4]"}`}
-        >
-          {type === "webtoon" ? (
-            <img
-              src={mediaUrl}
-              alt="Dream Webtoon"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-black flex items-center justify-center">
-              <video
-                src={mediaUrl}
-                controls
-                className="w-full h-full object-contain"
-              />
+        {has4Panels ? (
+          /* 인생네컷 스타일 2x2 그리드 */
+          <div className="flex flex-col items-center justify-center flex-1 w-full px-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-black/30 p-2"
+            >
+              <div className="grid grid-cols-2 gap-2">
+                {panelImages.slice(0, 4).map((url, idx) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, delay: idx * 0.1 }}
+                    className="relative aspect-[9/16] rounded-xl overflow-hidden border border-white/5"
+                  >
+                    <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-[10px] font-bold text-purple-300 border border-purple-500/30">
+                      {idx + 1}컷
+                    </div>
+                    <img
+                      src={url}
+                      alt={`${idx + 1}컷`}
+                      className="w-full h-full object-cover"
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        ) : (
+          /* 단일 이미지 폴백 */
+          <div className="flex flex-col items-center justify-center flex-1">
+            <div
+              className={`w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-white/10 relative ${type === "webtoon" ? "h-[60vh]" : "aspect-[3/4]"}`}
+            >
+              {type === "webtoon" ? (
+                <img
+                  src={mediaUrl}
+                  alt="Dream Webtoon"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-black flex items-center justify-center">
+                  <video
+                    src={mediaUrl}
+                    controls
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Action Buttons (Favorite, Share, Download) */}
-        <div className="flex justify-center gap-6 py-2 mt-4">
+        <div className="flex justify-center gap-6 py-4 mt-4 flex-shrink-0">
           <button
             onClick={handleFavorite}
             className="group flex flex-col items-center gap-2 text-gray-400 hover:text-white transition-colors"

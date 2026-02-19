@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Heart, Download, Share2, Play, Pause } from 'lucide-react'
 import { useDreamStore } from '@/store/useDreamStore'
-import { DreamScene } from '@/types'
+import { DreamEntry, DreamScene, formatDate } from '@/types'
+import { dreamAPI } from '@/services/api'
 
 // Memoized Scene Card
 const SceneCard = memo(({ scene, index }: { scene: DreamScene; index: number }) => (
@@ -77,54 +78,28 @@ SceneCard.displayName = 'SceneCard'
 export default function WebtoonViewPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { dreams, toggleFavorite } = useDreamStore()
+  const { dreams, toggleFavorite, addDream } = useDreamStore()
   const [isPlaying, setIsPlaying] = useState(false)
+  const [localDream, setLocalDream] = useState<DreamEntry | null>(null)
 
+  const storeDream = dreams.find((d) => d.id === id)
+  const dream = storeDream || localDream
 
-  const dream = dreams.find((d) => d.id === id)
-
+  // 스토어에 없으면 BE에서 가져오기
   useEffect(() => {
-    if (!dream) {
-      navigate('/')
+    if (!storeDream && id) {
+      dreamAPI.getDream(id).then((d) => {
+        setLocalDream(d)
+        addDream(d)
+      }).catch(() => {
+        navigate('/')
+      })
     }
-  }, [dream, navigate])
+  }, [id, storeDream])
 
   if (!dream) return null
 
-  // Mock scenes if empty
-  const scenes: DreamScene[] = dream.scenes.length > 0 ? dream.scenes : [
-    {
-      id: '1',
-      sceneNumber: 1,
-      description: '이상한 나라로 떨어지는 장면',
-      characters: ['나'],
-      emotion: 'surprise',
-      backgroundKeywords: ['하늘', '구름', '빛'],
-      narration: '갑자기 발 밑이 무너지면서 끝없이 떨어지기 시작했다.',
-    },
-    {
-      id: '2',
-      sceneNumber: 2,
-      description: '신비로운 숲속',
-      characters: ['나', '신비한 존재'],
-      emotion: 'peace',
-      backgroundKeywords: ['숲', '나무', '빛'],
-      narration: '부드럽게 착지한 곳은 형형색색의 나무들이 빛나는 숲이었다.',
-      dialogue: [
-        { character: '신비한 존재', text: '여기는 꿈의 세계란다.' },
-        { character: '나', text: '정말 아름다워요...' },
-      ],
-    },
-    {
-      id: '3',
-      sceneNumber: 3,
-      description: '하늘을 나는 장면',
-      characters: ['나'],
-      emotion: 'joy',
-      backgroundKeywords: ['하늘', '별', '달'],
-      narration: '갑자기 몸이 가벼워지면서 하늘을 날기 시작했다.',
-    },
-  ]
+  const scenes: DreamScene[] = dream.scenes || []
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying)
@@ -198,7 +173,7 @@ export default function WebtoonViewPage() {
 
           <h1 className="text-3xl font-bold mb-2 text-white">{dream.title}</h1>
           <p className="text-gray-400">
-            {dream.recordedAt.toLocaleDateString('ko-KR', {
+            {formatDate(dream.recordedAt, {
               year: 'numeric',
               month: 'long',
               day: 'numeric',

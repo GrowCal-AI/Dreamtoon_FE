@@ -7,12 +7,14 @@ import AnalyticsPage from './pages/AnalyticsPage'
 import LibraryPage from './pages/LibraryPage'
 
 import LoginPage from './pages/LoginPage'
+import OAuthCallbackPage from './pages/OAuthCallbackPage'
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="input" element={<DreamInputPage />} />

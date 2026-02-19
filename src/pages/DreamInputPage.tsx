@@ -1,22 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import {
-  Mic,
-  Send,
-  Sparkles,
-  Loader2,
-  X,
-  Layout,
-  PlayCircle,
-} from "lucide-react";
+import { Mic, Send, Sparkles, Loader2, X } from "lucide-react";
 import GenerationResult from "@/components/common/GenerationResult";
 
 import { useChatStore } from "@/store/useChatStore";
 import { useDreamStore } from "@/store/useDreamStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import LoginModal from "@/components/common/LoginModal";
-import { EmotionType, DreamStyle, DreamEntry, DreamScene } from "@/types";
+import { EmotionType, DreamStyle } from "@/types";
+import { dreamAPI, voiceAPI } from "@/services/api";
 import {
   Radar,
   RadarChart,
@@ -50,15 +43,19 @@ const EmotionChip = ({
 );
 
 const AnalysisDashboard = ({ analysis }: { analysis: any }) => {
-  // Mock Data for Radar Chart if analysis is null
+  // BE emotionScores는 한글 키(기쁨, 분노 등) 또는 영문 키(JOY, ANGER 등)로 반환됨
+  const scores = analysis?.emotionScores || {};
+  const get = (ko: string, en: string) => scores[ko] ?? scores[en] ?? scores[en.toLowerCase()] ?? 0;
   const data = [
-    { subject: "기쁨", A: analysis?.emotions?.joy || 20, fullMark: 100 },
-    { subject: "불안", A: analysis?.emotions?.anxiety || 60, fullMark: 100 },
-    { subject: "분노", A: analysis?.emotions?.anger || 10, fullMark: 100 },
-    { subject: "슬픔", A: analysis?.emotions?.sadness || 30, fullMark: 100 },
-    { subject: "놀람", A: analysis?.emotions?.surprise || 40, fullMark: 100 },
-    { subject: "평온", A: analysis?.emotions?.peace || 10, fullMark: 100 },
+    { subject: "기쁨", A: get("기쁨", "JOY"), fullMark: 100 },
+    { subject: "불안", A: get("불안", "ANXIETY"), fullMark: 100 },
+    { subject: "분노", A: get("분노", "ANGER"), fullMark: 100 },
+    { subject: "슬픔", A: get("슬픔", "SADNESS"), fullMark: 100 },
+    { subject: "놀람", A: get("놀람", "SURPRISE") || get("불편", "DISCOMFORT"), fullMark: 100 },
+    { subject: "평온", A: get("평온", "PEACE"), fullMark: 100 },
   ];
+
+  const insight = analysis?.aiInsight;
 
   return (
     <div className="w-full max-w-md glass-card p-6">
@@ -90,17 +87,14 @@ const AnalysisDashboard = ({ analysis }: { analysis: any }) => {
         </ResponsiveContainer>
       </div>
 
-      <div className="mt-4 p-4 bg-purple-500/10 rounded-xl border border-purple-500/20">
-        <div className="flex items-start gap-3">
-          <Sparkles className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-gray-200 leading-relaxed">
-            무의식 속에{" "}
-            <span className="font-bold text-purple-400">불안감</span>이 높게
-            나타나고 있어요. 현실에서의 스트레스가 꿈에 반영된 것 같아요. 잠시
-            휴식을 취하는 건 어떨까요?
-          </p>
+      {insight && (
+        <div className="mt-4 p-4 bg-purple-500/10 rounded-xl border border-purple-500/20">
+          <div className="flex items-start gap-3">
+            <Sparkles className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-gray-200 leading-relaxed">{insight}</p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
@@ -258,9 +252,14 @@ export default function DreamInputPage() {
 
   // State for pending save actions
   const [pendingSave, setPendingSave] = useState(false);
+  const [createdDreamId, setCreatedDreamId] = useState<string | null>(null);
+  const [analysisData, setAnalysisData] = useState<any>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const initializedRef = useRef(false);
 
-  const { addDream } = useDreamStore();
+  const { addDream, updateDream } = useDreamStore();
   const { isLoggedIn, login, checkSaveLimit, updateUser } = useAuthStore();
 
   const {
@@ -276,7 +275,6 @@ export default function DreamInputPage() {
     selectStyle,
     selectedStyle,
     selectFormat,
-    selectedFormat,
     isGenerating,
     setIsGenerating,
     isSaved,
@@ -324,16 +322,83 @@ export default function DreamInputPage() {
     }, 600);
   };
 
-  const handleContentSubmit = (e?: React.FormEvent) => {
+  // 자동 로그인: 토큰이 없거나 무효하면 새로 발급
+  const sessionVerifiedRef = useRef(false);
+  const ensureLoggedIn = async () => {
+    if (sessionVerifiedRef.current && useAuthStore.getState().isLoggedIn) return;
+
+    // 기존 토큰 정리 후 새로 발급 (이전 서버 토큰 불일치 방지)
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    useAuthStore.setState({ isLoggedIn: false });
+    await useAuthStore.getState().testLogin(1);
+    sessionVerifiedRef.current = true;
+  };
+
+  const handleContentSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!dreamContent.trim()) return;
 
-    addMessage({ role: "user", content: dreamContent, type: "text" });
+    const content = dreamContent;
+    addMessage({ role: "user", content, type: "text" });
     setDreamContent("");
-
     setIsAnalyzing(true);
+    setStep(3);
 
-    setTimeout(() => {
+    try {
+      // 로그인 보장 (토큰 무효 시 자동 재발급)
+      await ensureLoggedIn();
+
+      // Step 1: BE에 꿈 기록 시작
+      const initResult = await dreamAPI.initiateDream(content);
+      const dreamId = initResult?.dreamId;
+
+      if (!dreamId) {
+        throw new Error("dreamId를 받지 못했습니다.");
+      }
+      setCreatedDreamId(String(dreamId));
+
+      // Step 2: 감정 선택 전송
+      const emotion = useChatStore.getState().selectedEmotion;
+      if (emotion) {
+        await dreamAPI.selectEmotion(dreamId, emotion.toUpperCase());
+      }
+
+      // Step 3: 상세 설명 입력 → 비동기 AI 분석 시작
+      await dreamAPI.addDetails(dreamId, content);
+
+      // 분석 폴링: ANALYSIS_COMPLETED까지 대기 → 결과 저장
+      const pollAnalysis = () =>
+        new Promise<void>((resolve) => {
+          const interval = setInterval(async () => {
+            try {
+              const analysis = await dreamAPI.getAnalysis(String(dreamId));
+              if (
+                analysis.status === "ANALYSIS_COMPLETED" ||
+                analysis.status === "COMPLETED" ||
+                analysis.status === "FAILED"
+              ) {
+                clearInterval(interval);
+                if (analysis.status !== "FAILED") {
+                  setAnalysisData(analysis);
+                }
+                resolve();
+              }
+            } catch {
+              clearInterval(interval);
+              resolve();
+            }
+          }, 2000);
+
+          // 최대 60초 타임아웃
+          setTimeout(() => {
+            clearInterval(interval);
+            resolve();
+          }, 60000);
+        });
+
+      await pollAnalysis();
+
       setIsAnalyzing(false);
       addMessage({ role: "ai", content: "", type: "analysis" });
 
@@ -344,186 +409,106 @@ export default function DreamInputPage() {
             "분석이 완료되었습니다! 어떤 필터로 4컷 웹툰을 그려드릴까요?",
           type: "text",
         });
-        selectFormat("webtoon"); // 자동으로 웹툰 형식 선택
-        setStep(4); // Style Step (바로 스타일 선택으로)
-      }, 1500);
-    }, 2000);
-
-    setStep(3); // Analysis Step (Hidden logic state)
+        selectFormat("webtoon");
+        setStep(4);
+      }, 500);
+    } catch (error) {
+      console.error("Dream analysis failed:", error);
+      setIsAnalyzing(false);
+      addMessage({
+        role: "ai",
+        content: "분석 중 오류가 발생했습니다. 다시 시도해주세요.",
+        type: "text",
+      });
+      setStep(2);
+    }
   };
 
-  // 포맷 선택 제거 - 자동으로 웹툰 형식
-
-  // Force Logic: Pass full style object
-  const handleStyleClick = (style: {
+  // 스타일 선택 → BE 웹툰 생성 API 호출
+  const handleStyleClick = async (style: {
     id: string;
     label: string;
     isPremium: boolean;
   }) => {
-    console.log(
-      "Selected Style:",
-      style.label,
-      "isPremium:",
-      style.isPremium,
-      "UserPremium:",
-      isPremium,
-    );
-
-    if (style.isPremium) {
-      // Premium Style Logic
-      if (isPremium) {
-        // If user is already premium, allow it
-        console.log("User is Premium -> Proceeding");
-        setShowPremiumModal(false);
-        selectStyle(style.id as DreamStyle);
-        setIsGenerating(true);
-        setStep(5);
-        setTimeout(() => {
-          setIsGenerating(false);
-        }, 4000);
-      } else {
-        // If user is NOT premium, show modal
-        console.log("User NOT Premium -> Show Modal");
-        setIsGenerating(false);
-        setModalType("style"); // Set Type to Style
-        setShowPremiumModal(true);
-      }
-    } else {
-      // Basic Style Logic
-      console.log("Basic Style -> Proceeding");
-      setShowPremiumModal(false);
-      selectStyle(style.id as DreamStyle);
-      setIsGenerating(true);
-      setStep(5);
-
-      setTimeout(() => {
-        setIsGenerating(false);
-      }, 4000);
-    }
-  };
-
-  const executeSave = () => {
-    // Prevent duplicate saves
-    if (isSaved) {
-      console.log("Dream already saved, skipping.");
+    if (style.isPremium && !isPremium) {
+      setModalType("style");
+      setShowPremiumModal(true);
       return;
     }
 
+    setShowPremiumModal(false);
+    selectStyle(style.id as DreamStyle);
+    setIsGenerating(true);
+    setStep(5);
+
     try {
-      // Check Save Limit
+      if (!createdDreamId) {
+        throw new Error("dreamId가 없습니다. 꿈 내용을 먼저 입력해주세요.");
+      }
+
+      // Step 5: 웹툰 생성 요청 (비동기)
+      await dreamAPI.generateWebtoon(createdDreamId, style.id);
+
+      // 폴링: COMPLETED 될 때까지
+      const pollInterval = setInterval(async () => {
+        try {
+          const dream = await dreamAPI.getDream(createdDreamId!);
+          if (
+            dream.processingStatus === "COMPLETED" ||
+            dream.processingStatus === "FAILED"
+          ) {
+            clearInterval(pollInterval);
+            // 중복 방지: 이미 존재하면 업데이트, 없으면 추가
+            const existing = useDreamStore.getState().dreams.find((d) => d.id === dream.id);
+            if (existing) {
+              updateDream(dream.id, dream);
+            } else {
+              addDream(dream);
+            }
+            setIsGenerating(false);
+          }
+        } catch {
+          clearInterval(pollInterval);
+          setIsGenerating(false);
+        }
+      }, 3000);
+
+      setTimeout(() => {
+        clearInterval(pollInterval);
+        setIsGenerating(false);
+      }, 120000);
+    } catch (error) {
+      console.error("Webtoon generation failed:", error);
+      setIsGenerating(false);
+      addMessage({
+        role: "ai",
+        content: "웹툰 생성 중 오류가 발생했습니다. 다시 시도해주세요.",
+        type: "text",
+      });
+      setStep(4);
+    }
+  };
+
+  const executeSave = async () => {
+    if (isSaved) return;
+
+    try {
       const canSave = checkSaveLimit();
       if (!canSave) {
         setModalType("style");
         setShowPremiumModal(true);
-        alert("저장 공간이 부족합니다. 프리미엄으로 업그레이드하세요!");
         return;
       }
 
-      // Generate Mock Data based on format
-      let mockScenes: DreamScene[] = [];
-      let mockWebtoonUrl = "";
-      let mockVideoUrl = "";
-
-      if (selectedFormat === "webtoon") {
-        mockScenes = [
-          {
-            id: "1",
-            sceneNumber: 1,
-            description: "꿈의 시작",
-            characters: ["나"],
-            emotion: "surprise",
-            backgroundKeywords: ["안개", "숲"],
-            imageUrl:
-              "https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3",
-            narration: "깊은 안개 속에서 눈을 떴다.",
-          },
-          {
-            id: "2",
-            sceneNumber: 2,
-            description: "감정의 고조",
-            characters: ["나", "그림자"],
-            emotion: "anxiety",
-            backgroundKeywords: ["어둠"],
-            imageUrl:
-              "https://images.unsplash.com/photo-1516410541193-62d80d2208a7",
-            dialogue: [{ character: "그림자", text: "왜 도망치는 거지?" }],
-          },
-          {
-            id: "3",
-            sceneNumber: 3,
-            description: "해결과 평온",
-            characters: ["나"],
-            emotion: "peace",
-            backgroundKeywords: ["빛", "하늘"],
-            imageUrl:
-              "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-            narration: "빛이 쏟아지며 모든 두려움이 사라졌다.",
-          },
-        ];
-        mockWebtoonUrl =
-          "https://images.unsplash.com/photo-1633469924738-52101af51d87";
-      } else {
-        // Animation
-        mockVideoUrl =
-          "https://assets.mixkit.co/videos/preview/mixkit-starry-sky-at-night-1077-large.mp4"; // Mock video
+      // BE에서 이미 생성된 dream을 라이브러리에 추가
+      if (createdDreamId) {
+        await dreamAPI.addToLibrary(createdDreamId);
       }
 
-      // Create Dream Object
-      const newDream: DreamEntry = {
-        id: Date.now().toString(),
-        userId: "current-user",
-        title: "무의식의 숲을 지나서",
-        content:
-          messages.find(
-            (m) =>
-              m.role === "user" && m.type === "text" && m.content.length > 20,
-          )?.content || "꿈 내용",
-        recordedAt: new Date(),
-        createdAt: new Date(),
-        inputMethod: "text",
-        style: selectedStyle || "healing",
-        format: selectedFormat || "webtoon",
-        scenes: mockScenes,
-        analysis: {
-          emotions: {
-            joy: 20,
-            anxiety: 60,
-            anger: 10,
-            sadness: 30,
-            surprise: 40,
-            peace: 10,
-          },
-          tensionLevel: 50,
-          controlLevel: 30,
-          isNightmare: false,
-          repeatingSymbols: [],
-          relationshipPatterns: [],
-          hasResolution: false,
-        },
-        tags: [
-          selectedFormat === "webtoon" ? "Webtoon" : "Animation",
-          selectedStyle || "healing",
-        ],
-        isFavorite: false,
-        webtoonUrl: mockWebtoonUrl,
-        videoUrl: mockVideoUrl,
-      };
-
-      console.log("Saving Dream:", newDream);
-      console.log("Previous Store State:", useDreamStore.getState().dreams);
-
-      addDream(newDream);
-      updateUser({
-        monthlySaveCount:
-          (useAuthStore.getState().user?.monthlySaveCount || 0) + 1,
-      });
       setIsSaved(true);
       setPendingSave(false);
-
-      console.log("New Store State:", useDreamStore.getState().dreams);
     } catch (error) {
       console.error("Failed to save dream:", error);
-      alert("저장 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
     }
   };
 
@@ -536,9 +521,52 @@ export default function DreamInputPage() {
     executeSave();
   };
 
+  // 음성 녹음 토글
+  const handleMicToggle = async () => {
+    if (isRecording) {
+      // 녹음 중지
+      mediaRecorderRef.current?.stop();
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        setIsRecording(false);
+
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        try {
+          addMessage({ role: "ai", content: "음성을 텍스트로 변환하고 있어요...", type: "text" });
+          const result = await voiceAPI.transcribe(audioBlob);
+          if (result.text) {
+            setDreamContent(result.text);
+          }
+        } catch (error) {
+          console.error("Voice transcription failed:", error);
+          addMessage({ role: "ai", content: "음성 변환에 실패했어요. 직접 입력해주세요.", type: "text" });
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Microphone access denied:", error);
+      addMessage({ role: "ai", content: "마이크 접근이 거부되었습니다. 브라우저 설정을 확인해주세요.", type: "text" });
+    }
+  };
+
   const handleReset = () => {
     reset();
-    navigate("/"); // Navigate home as requested
+    navigate("/");
   };
 
   const handleSubscribe = () => {
@@ -619,14 +647,27 @@ export default function DreamInputPage() {
             ) : (
               <GenerationResult
                 key="result"
-                title="무의식의 숲을 지나서"
+                title={
+                  createdDreamId
+                    ? useDreamStore.getState().dreams.find((d) => d.id === createdDreamId)?.title || "나의 꿈"
+                    : "나의 꿈"
+                }
                 date={new Date().toLocaleDateString()}
-                mediaUrl="https://images.unsplash.com/photo-1633469924738-52101af51d87?q=80&w=1000&auto=format&fit=crop"
+                mediaUrl={
+                  createdDreamId
+                    ? useDreamStore.getState().dreams.find((d) => d.id === createdDreamId)?.webtoonUrl || ""
+                    : ""
+                }
+                scenes={
+                  createdDreamId
+                    ? useDreamStore.getState().dreams.find((d) => d.id === createdDreamId)?.scenes
+                    : undefined
+                }
                 type="webtoon"
                 onSave={handleSaveDream}
                 onReset={handleReset}
                 onTalkMore={() => {
-                  setModalType("deep_chat"); // Set Type to Deep Chat
+                  setModalType("deep_chat");
                   setShowPremiumModal(true);
                 }}
                 isSaved={isSaved}
@@ -736,7 +777,7 @@ export default function DreamInputPage() {
               }`}
             >
               {msg.type === "analysis" ? (
-                <AnalysisDashboard analysis={null} />
+                <AnalysisDashboard analysis={analysisData} />
               ) : (
                 <p className="leading-relaxed whitespace-pre-wrap">
                   {msg.content}
@@ -938,7 +979,12 @@ export default function DreamInputPage() {
         >
           <button
             type="button"
-            className="p-2.5 rounded-full text-gray-400 hover:bg-white/10 transition-colors"
+            onClick={handleMicToggle}
+            className={`p-2.5 rounded-full transition-colors ${
+              isRecording
+                ? "bg-red-500/20 text-red-400 animate-pulse"
+                : "text-gray-400 hover:bg-white/10"
+            }`}
           >
             <Mic size={20} />
           </button>

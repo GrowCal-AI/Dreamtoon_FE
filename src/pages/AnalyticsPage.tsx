@@ -453,7 +453,7 @@ export default function AnalyticsPage() {
   const [selectedStat, setSelectedStat] = useState<DailyDreamStat | null>(null);
 
   useEffect(() => {
-    fetchAnalysis("minji-mock-id");
+    fetchAnalysis("current-user");
   }, [fetchAnalysis]);
 
   if (isLoading && !analysis) {

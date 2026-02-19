@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Library, BarChart3, User } from "lucide-react";
+import { Home, Library, BarChart3 } from "lucide-react";
 
 export default function BottomNavigation() {
   const location = useLocation();
