@@ -100,7 +100,15 @@ export default function DreamChatPage() {
   // ── 실제 API 호출 ──────────────────────────────────────────────────────
 
   const callChatAPI = async (text: string) => {
-    if (!dreamId) return;
+    if (!dreamId) {
+      setMessages((prev) => [...prev, {
+        id: `err-${Date.now()}`,
+        role: "ai",
+        content: "꿈 정보를 찾을 수 없어요. 라이브러리에서 꿈을 선택한 뒤 다시 시도해 주세요.",
+        timestamp: new Date(),
+      }]);
+      return;
+    }
     setIsLoading(true);
     try {
       const res = await dreamAPI.sendChatMessage(dreamId, text);

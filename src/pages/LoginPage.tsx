@@ -4,8 +4,10 @@ import { Sparkles, ArrowLeft } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1'
-// 끝 슬래시 및 /api/v1 경로 제거 → 순수 origin만 추출
-const BE_BASE_URL = API_BASE_URL.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '')
+// URL origin 추출 (프로토콜 + 호스트 + 포트)
+const BE_BASE_URL = (() => {
+  try { return new URL(API_BASE_URL).origin } catch { return API_BASE_URL.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '') }
+})()
 
 export default function LoginPage() {
     const navigate = useNavigate()

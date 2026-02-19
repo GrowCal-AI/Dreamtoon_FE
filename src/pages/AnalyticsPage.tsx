@@ -420,15 +420,11 @@ const CoachingSection = ({
         <Sparkles className="w-8 h-8 text-yellow-300" />
       </div>
 
-      <h3
-        className="text-2xl font-bold text-white leading-relaxed max-w-2xl"
-        dangerouslySetInnerHTML={{
-          __html: insight.message.replace(
-            /\*\*(.*?)\*\*/g,
-            '<span class="text-purple-300">$1</span>',
-          ),
-        }}
-      />
+      <h3 className="text-2xl font-bold text-white leading-relaxed max-w-2xl">
+        {insight.message.split(/\*\*(.*?)\*\*/g).map((part, i) =>
+          i % 2 === 1 ? <span key={i} className="text-purple-300">{part}</span> : part
+        )}
+      </h3>
 
       <div className="bg-white/5 rounded-xl px-6 py-4 flex items-center gap-3 border border-white/10">
         <Zap className="w-5 h-5 text-yellow-400" />

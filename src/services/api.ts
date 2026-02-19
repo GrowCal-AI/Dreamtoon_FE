@@ -52,23 +52,24 @@ export const userAPI = {
 
 // === 꿈 API ===
 export const dreamAPI = {
-  // [방법 B] Step 1: 꿈 기록 시작 (title + content)
-  initiateDream: async (title: string, content: string): Promise<{ dreamId: number; status: string }> => {
-    const { data } = await apiClient.post('/dreams', { title, dreamContent: content })
+  // [방법 B] Step 1: 꿈 기록 시작 (dreamContent만 필수)
+  initiateDream: async (_title: string, content: string): Promise<{ dreamId: number; systemMessage?: string }> => {
+    const { data } = await apiClient.post('/dreams', { dreamContent: content })
     return data
   },
 
-  // [방법 B] Step 2: 감정 선택
+  // [방법 B] Step 2: 감정 선택 (BE 필드: primaryEmotion)
   selectEmotion: async (dreamId: number, emotion: string): Promise<void> => {
-    await apiClient.patch(`/dreams/${dreamId}/emotion`, { emotion })
+    await apiClient.patch(`/dreams/${dreamId}/emotion`, { primaryEmotion: emotion })
   },
 
-  // [방법 B] Step 3: 장르 선택 → 비동기 AI 분석 시작 (202 Accepted)
+  // [방법 B] Step 3: 상세 내용 추가 → 비동기 AI 분석 시작 (202 Accepted)
   addDetails: async (
     dreamId: number,
-    selectedGenre: string
+    detailedDescription: string,
+    realLifeContext?: string
   ): Promise<{ dreamId: number; status: string; message: string }> => {
-    const { data } = await apiClient.patch(`/dreams/${dreamId}/details`, { selectedGenre })
+    const { data } = await apiClient.patch(`/dreams/${dreamId}/details`, { detailedDescription, realLifeContext })
     return data
   },
 
