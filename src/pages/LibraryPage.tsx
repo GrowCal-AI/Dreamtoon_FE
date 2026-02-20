@@ -194,6 +194,8 @@ export default function LibraryPage() {
   const [filterStyle, setFilterStyle] = useState<DreamStyle | "all">("all");
   const [showFavorites, setShowFavorites] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // localStorage 즐겨찾기 ID 목록 - 하트 토글 후 반응적으로 갱신
+  const [localFavIds, setLocalFavIds] = useState<string[]>(getLocalFavoriteIds);
 
   /** FE DreamStyle → BE Genre (UPPERCASE) 변환 */
   const styleToGenre = (style: DreamStyle | "all"): string | undefined => {
@@ -203,6 +205,7 @@ export default function LibraryPage() {
   };
 
   // BE에서 라이브러리 목록 가져오기 (로그인 시에만, 필터 변경 시 재호출)
+  // 즐겨찾기 필터는 localStorage 기반으로 프론트엔드에서만 처리
   useEffect(() => {
     if (!isLoggedIn) {
       setLibraryDreams([]);
@@ -212,7 +215,7 @@ export default function LibraryPage() {
       try {
         const params: Record<string, unknown> = {};
         if (filterStyle !== "all") params.genre = styleToGenre(filterStyle);
-        if (showFavorites) params.favorite = true;
+        // favorite 파라미터 제거: BE는 localStorage 즐겨찾기를 알 수 없음
         const result = await libraryAPI.getLibrary(params as any);
         const raw =
           result?.dreams ??
@@ -228,10 +231,9 @@ export default function LibraryPage() {
       }
     };
     fetchLibrary();
-  }, [isLoggedIn, dreams, filterStyle, showFavorites]);
+  }, [isLoggedIn, dreams, filterStyle]);
 
   const filteredDreams = useMemo(() => {
-    const localFavIds = getLocalFavoriteIds();
     let result = libraryDreams.map((d) => ({
       ...d,
       isFavorite: d.isFavorite || localFavIds.includes(d.id),
@@ -247,12 +249,14 @@ export default function LibraryPage() {
         new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
     );
     return result;
-  }, [libraryDreams, filterStyle, showFavorites]);
+  }, [libraryDreams, filterStyle, showFavorites, localFavIds]);
 
   useEffect(() => {
     if (selectedDream) {
       document.body.style.overflow = "hidden";
     } else {
+      // 모달 닫힐 때 localStorage에서 최신 즐겨찾기 목록 재읽기
+      setLocalFavIds(getLocalFavoriteIds());
       document.body.style.overflow = "unset";
     }
     return () => {
