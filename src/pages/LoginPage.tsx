@@ -18,24 +18,14 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { testLogin } = useAuthStore();
 
-<<<<<<< HEAD
-    const handleKakaoLogin = () => {
-        window.location.href = `${BE_BASE_URL}/oauth2/authorization/kakao?redirect_uri=${encodeURIComponent(window.location.origin)}`
-    }
-
-    const handleGoogleLogin = () => {
-        window.location.href = `${BE_BASE_URL}/oauth2/authorization/google?redirect_uri=${encodeURIComponent(window.location.origin)}`
-    }
-=======
   const handleKakaoLogin = () => {
-    window.location.href = `${BE_BASE_URL}/oauth2/authorization/kakao`;
+    window.location.href = `${BE_BASE_URL}/oauth2/authorization/kakao?redirect_uri=${encodeURIComponent(window.location.origin)}`;
   };
 
   // TODO: 구글 로그인 - MVP 이후 구현 예정
   // const handleGoogleLogin = () => {
-  //   window.location.href = `${BE_BASE_URL}/oauth2/authorization/google`;
+  //   window.location.href = `${BE_BASE_URL}/oauth2/authorization/google?redirect_uri=${encodeURIComponent(window.location.origin)}`;
   // };
->>>>>>> origin/main
 
   const handleDevLogin = async () => {
     await testLogin(1);
