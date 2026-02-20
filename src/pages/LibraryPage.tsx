@@ -8,6 +8,15 @@ import { libraryAPI, dreamAPI } from "@/services/api";
 import { DreamEntry, DreamStyle, formatDateShort } from "@/types";
 import GenerationResult from "@/components/common/GenerationResult";
 
+const FAVORITES_KEY = "dreamics_favorites";
+const getLocalFavoriteIds = (): string[] => {
+  try {
+    return JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
+
 /** BE genre 키(UPPERCASE) → FE DreamStyle(lowercase) 변환 */
 const GENRE_TO_STYLE: Record<string, DreamStyle> = {
   CUSTOM: "custom",
@@ -222,7 +231,11 @@ export default function LibraryPage() {
   }, [isLoggedIn, dreams, filterStyle, showFavorites]);
 
   const filteredDreams = useMemo(() => {
-    let result = [...libraryDreams];
+    const localFavIds = getLocalFavoriteIds();
+    let result = libraryDreams.map((d) => ({
+      ...d,
+      isFavorite: d.isFavorite || localFavIds.includes(d.id),
+    }));
     if (filterStyle !== "all") {
       result = result.filter((dream) => dream.style === filterStyle);
     }
@@ -466,6 +479,7 @@ export default function LibraryPage() {
                 type={fullDreamDetail.format}
                 isSaved={true}
                 scenes={fullDreamDetail.scenes}
+                dreamId={fullDreamDetail.id}
                 onSave={() => {}}
                 onReset={() => navigate("/")}
                 onTalkMore={() => {

@@ -326,7 +326,9 @@ export default function DreamInputPage() {
   // stale closure 방지: 항상 최신 함수를 가리키는 ref
   const startVoiceStepRef = useRef<(vStep: number) => void>(() => {});
   const startVoiceListeningRef = useRef<(vStep: number) => void>(() => {});
-  const handleVoiceFlowResultRef = useRef<(vStep: number, spoken: string) => void>(() => {});
+  const handleVoiceFlowResultRef = useRef<
+    (vStep: number, spoken: string) => void
+  >(() => {});
 
   // Voice-flow: 음성 인식 시작 (2초 침묵 → 자동 다음 단계)
   const startVoiceListening = (vStep: number) => {
@@ -393,7 +395,11 @@ export default function DreamInputPage() {
         setVoiceFlowStep(0);
         window.speechSynthesis.cancel();
       } else if (event.error !== "aborted") {
-        addMessage({ role: "ai", content: "음성 인식에 실패했어요. 다시 시도해 주세요.", type: "text" });
+        addMessage({
+          role: "ai",
+          content: "음성 인식에 실패했어요. 다시 시도해 주세요.",
+          type: "text",
+        });
       }
     };
 
@@ -438,17 +444,32 @@ export default function DreamInputPage() {
       addMessage({ role: "user", content: spoken, type: "text" });
       setDreamContent(spoken);
       setTimeout(() => startVoiceStepRef.current(1), 300);
-
     } else if (vStep === 1) {
       const emotionMap: Record<string, EmotionType> = {
-        기쁨: "joy", 기뻐: "joy", 좋아: "joy", 즐거: "joy",
-        불안: "anxiety", 걱정: "anxiety", 무서: "anxiety",
-        분노: "anger", 화: "anger", 짜증: "anger",
-        슬픔: "sadness", 슬퍼: "sadness", 우울: "sadness",
-        놀람: "surprise", 놀라: "surprise", 깜짝: "surprise",
-        평온: "peace", 편안: "peace", 차분: "peace", 고요: "peace",
+        기쁨: "joy",
+        기뻐: "joy",
+        좋아: "joy",
+        즐거: "joy",
+        불안: "anxiety",
+        걱정: "anxiety",
+        무서: "anxiety",
+        분노: "anger",
+        화: "anger",
+        짜증: "anger",
+        슬픔: "sadness",
+        슬퍼: "sadness",
+        우울: "sadness",
+        놀람: "surprise",
+        놀라: "surprise",
+        깜짝: "surprise",
+        평온: "peace",
+        편안: "peace",
+        차분: "peace",
+        고요: "peace",
       };
-      const matched = Object.entries(emotionMap).find(([k]) => spoken.includes(k));
+      const matched = Object.entries(emotionMap).find(([k]) =>
+        spoken.includes(k),
+      );
       const emotion: EmotionType = matched ? matched[1] : "peace";
 
       addMessage({ role: "user", content: spoken, type: "text" });
@@ -461,15 +482,20 @@ export default function DreamInputPage() {
         setStep(2);
         setTimeout(() => startVoiceStepRef.current(2), 600);
       }, 300);
-
     } else if (vStep === 2) {
       addMessage({ role: "user", content: spoken, type: "text" });
       setTimeout(() => startVoiceStepRef.current(3), 300);
-
     } else if (vStep === 3) {
-      const skipped = spoken.includes("없") || spoken.includes("괜찮") || spoken.includes("건너");
+      const skipped =
+        spoken.includes("없") ||
+        spoken.includes("괜찮") ||
+        spoken.includes("건너");
       const context = skipped ? "" : spoken;
-      addMessage({ role: "user", content: skipped ? "건너뛸게요" : spoken, type: "text" });
+      addMessage({
+        role: "user",
+        content: skipped ? "건너뛸게요" : spoken,
+        type: "text",
+      });
       setRealLifeContext(context);
       isVoiceModeRef.current = false;
       setIsVoiceMode(false);
@@ -506,7 +532,8 @@ export default function DreamInputPage() {
         } else {
           addMessage({
             role: "ai",
-            content: "안녕하세요! 어젯밤 꾸셨던 꿈은 어떠셨나요? 가장 먼저 떠오르는 감정을 알려주세요.",
+            content:
+              "안녕하세요! 어젯밤 꾸셨던 꿈은 어떠셨나요? 가장 먼저 떠오르는 감정을 알려주세요.",
             type: "text",
           });
           setStep(1);
@@ -571,8 +598,12 @@ export default function DreamInputPage() {
     const dreamDetail =
       [...msgs]
         .reverse()
-        .find((m) => m.role === "user" && m.type === "text" && m.content !== "건너뛸게요")
-        ?.content || "나의 꿈";
+        .find(
+          (m) =>
+            m.role === "user" &&
+            m.type === "text" &&
+            m.content !== "건너뛸게요",
+        )?.content || "나의 꿈";
 
     // 현실 고민은 BE에 별도 필드가 없으므로 content에 합산하여 전달
     const combinedContent = context
@@ -591,8 +622,11 @@ export default function DreamInputPage() {
         mainEmotion: emotion ?? "peace",
         style: "custom",
       });
-      console.log('[handleRealLifeSubmit] initResult 전체:', initResult)
-      const dreamId = initResult?.dreamId ?? (initResult as any)?.id ?? (initResult as any)?.dream_id;
+      console.log("[handleRealLifeSubmit] initResult 전체:", initResult);
+      const dreamId =
+        initResult?.dreamId ??
+        (initResult as any)?.id ??
+        (initResult as any)?.dream_id;
       if (!dreamId) throw new Error("dreamId를 받지 못했습니다.");
       setCreatedDreamId(String(dreamId));
 
@@ -616,7 +650,10 @@ export default function DreamInputPage() {
               resolve();
             }
           }, 2000);
-          setTimeout(() => { clearInterval(interval); resolve(); }, 60000);
+          setTimeout(() => {
+            clearInterval(interval);
+            resolve();
+          }, 60000);
         });
 
       await pollAnalysis();
@@ -627,7 +664,8 @@ export default function DreamInputPage() {
       setTimeout(() => {
         addMessage({
           role: "ai",
-          content: "분석이 완료되었습니다! 어떤 필터로 4컷 웹툰을 그려드릴까요?",
+          content:
+            "분석이 완료되었습니다! 어떤 필터로 4컷 웹툰을 그려드릴까요?",
           type: "text",
         });
         selectFormat("webtoon");
@@ -643,7 +681,8 @@ export default function DreamInputPage() {
       if (errCode === "GENERATION_LIMIT_EXCEEDED" || errStatus === 429) {
         addMessage({
           role: "ai",
-          content: "이번 달 꿈 생성 횟수를 모두 사용했어요. 더 많은 꿈을 기록하려면 구독 플랜을 업그레이드해 보세요!",
+          content:
+            "이번 달 꿈 생성 횟수를 모두 사용했어요. 더 많은 꿈을 기록하려면 구독 플랜을 업그레이드해 보세요!",
           type: "text",
         });
         setShowPremiumModal(true);
@@ -675,7 +714,7 @@ export default function DreamInputPage() {
     label: string;
     isPremium: boolean;
   }) => {
-    if (style.isPremium && (!user || user.subscriptionTier === 'free')) {
+    if (style.isPremium && (!user || user.subscriptionTier === "free")) {
       setModalType("style");
       setShowPremiumModal(true);
       return;
@@ -732,7 +771,8 @@ export default function DreamInputPage() {
       if (errCode === "PREMIUM_STYLE_NOT_ALLOWED") {
         addMessage({
           role: "ai",
-          content: "프리미엄 스타일은 유료 구독자만 사용할 수 있어요. 구독 플랜을 확인해 보세요!",
+          content:
+            "프리미엄 스타일은 유료 구독자만 사용할 수 있어요. 구독 플랜을 확인해 보세요!",
           type: "text",
         });
         setShowPremiumModal(true);
@@ -795,7 +835,8 @@ export default function DreamInputPage() {
     if (!SpeechRecognitionAPI) {
       addMessage({
         role: "ai",
-        content: "이 브라우저는 음성 인식을 지원하지 않아요. Chrome을 사용해주세요.",
+        content:
+          "이 브라우저는 음성 인식을 지원하지 않아요. Chrome을 사용해주세요.",
         type: "text",
       });
       return;
@@ -904,13 +945,16 @@ export default function DreamInputPage() {
                     : undefined
                 }
                 type="webtoon"
+                dreamId={createdDreamId ?? undefined}
                 onSave={handleSaveDream}
                 onReset={handleReset}
                 onTalkMore={() => {
-                  const dreamTitle =
-                    createdDreamId
-                      ? useDreamStore.getState().dreams.find((d) => d.id === createdDreamId)?.title || "나의 꿈"
-                      : "나의 꿈";
+                  const dreamTitle = createdDreamId
+                    ? useDreamStore
+                        .getState()
+                        .dreams.find((d) => d.id === createdDreamId)?.title ||
+                      "나의 꿈"
+                    : "나의 꿈";
                   navigate("/dream-chat", {
                     state: { dreamId: createdDreamId, dreamTitle },
                   });
@@ -1244,7 +1288,9 @@ export default function DreamInputPage() {
           /* Voice-flow 모드: 마이크 웨이브 인디케이터 */
           <div className="flex items-center justify-center gap-4 max-w-3xl mx-auto py-1">
             <div className="flex items-center gap-3 px-6 py-2.5 rounded-full bg-white/5 border border-white/10">
-              <div className={`flex items-end gap-[3px] h-5 ${isRecording ? "" : "opacity-40"}`}>
+              <div
+                className={`flex items-end gap-[3px] h-5 ${isRecording ? "" : "opacity-40"}`}
+              >
                 {[3, 5, 7, 5, 3, 7, 4].map((h, i) => (
                   <div
                     key={i}
@@ -1258,7 +1304,9 @@ export default function DreamInputPage() {
                 ))}
               </div>
               <span className="text-sm text-gray-300">
-                {isRecording ? "듣고 있어요..." : "잠시 후 마이크가 켜집니다..."}
+                {isRecording
+                  ? "듣고 있어요..."
+                  : "잠시 후 마이크가 켜집니다..."}
               </span>
             </div>
             <button
@@ -1268,7 +1316,8 @@ export default function DreamInputPage() {
                 isVoiceModeRef.current = false;
                 recognitionRef.current?.stop();
                 window.speechSynthesis.cancel();
-                if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+                if (silenceTimerRef.current)
+                  clearTimeout(silenceTimerRef.current);
                 setIsVoiceMode(false);
                 setIsRecording(false);
               }}

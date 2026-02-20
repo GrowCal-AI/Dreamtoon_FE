@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useHealthStore, DailyDreamStat } from "@/store/useHealthStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useDreamStore } from "@/store/useDreamStore";
 import {
   Loader2,
   X,
@@ -171,7 +172,22 @@ const DreamDetailModal = ({
   onClose: () => void;
 }) => {
   const navigate = useNavigate();
+  const { dreams } = useDreamStore();
   if (!stat) return null;
+
+  // stat.webtoonData가 없으면 useDreamStore에서 dreamId로 찾기
+  const storeDream = stat.dreamId
+    ? dreams.find((d) => d.id === stat.dreamId)
+    : undefined;
+  const webtoonData =
+    stat.webtoonData ??
+    (storeDream
+      ? {
+          id: storeDream.id,
+          thumbnail:
+            storeDream.scenes?.[0]?.imageUrl || storeDream.webtoonUrl || "",
+        }
+      : undefined);
 
   return (
     <motion.div
@@ -230,14 +246,14 @@ const DreamDetailModal = ({
             </div>
           </div>
 
-          {stat.webtoonData ? (
+          {webtoonData ? (
             <div className="w-full space-y-3">
               <div
                 className="aspect-video rounded-xl overflow-hidden relative group cursor-pointer"
-                onClick={() => navigate(`/webtoon/${stat.webtoonData!.id}`)}
+                onClick={() => navigate(`/webtoon/${webtoonData!.id}`)}
               >
                 <img
-                  src={stat.webtoonData.thumbnail}
+                  src={webtoonData.thumbnail}
                   alt="Webtoon Thumbnail"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
@@ -248,7 +264,7 @@ const DreamDetailModal = ({
                 </div>
               </div>
               <button
-                onClick={() => navigate(`/webtoon/${stat.webtoonData!.id}`)}
+                onClick={() => navigate(`/webtoon/${webtoonData!.id}`)}
                 className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold transition-colors shadow-lg shadow-purple-900/20"
               >
                 오늘의 꿈 웹툰 보기
@@ -414,33 +430,6 @@ const CoachingSection = ({
   const navigate = useNavigate();
   const insight = getInsight(stress, emotions);
 
-  const handleShare = async () => {
-    const shareData = {
-      title: "Dreamics.ai - 꿈 분석 결과",
-      text: `나의 꿈 감정 분석 결과를 확인해보세요! ${insight.message.replace(/\*\*/g, "")}`,
-      url: window.location.href,
-    };
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch {
-        // 사용자가 취소한 경우 무시
-      }
-    } else {
-      await navigator.clipboard.writeText(window.location.href);
-      alert("링크가 복사되었습니다!");
-    }
-  };
-
-  const ShareButton = () => (
-    <button
-      onClick={handleShare}
-      className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors border border-white/10"
-    >
-      친구에게 공유하기
-    </button>
-  );
-
   const ConsultButton = () => (
     <button
       onClick={() => navigate("/dream-chat")}
@@ -483,7 +472,6 @@ const CoachingSection = ({
       </div>
 
       <div className="pt-4 flex gap-3 w-full max-w-md">
-        <ShareButton />
         <ConsultButton />
       </div>
     </motion.div>
