@@ -3,7 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useHealthStore, DailyDreamStat } from "@/store/useHealthStore";
 import { useAuthStore } from "@/store/useAuthStore";
-import { Loader2, X, ChevronRight, Image as ImageIcon, LogIn } from "lucide-react";
+import {
+  Loader2,
+  X,
+  ChevronRight,
+  Image as ImageIcon,
+  LogIn,
+} from "lucide-react";
 
 import {
   RadialBarChart,
@@ -405,7 +411,44 @@ const CoachingSection = ({
   stress: number;
   emotions: any;
 }) => {
+  const navigate = useNavigate();
   const insight = getInsight(stress, emotions);
+
+  const handleShare = async () => {
+    const shareData = {
+      title: "Dreamics.ai - 꿈 분석 결과",
+      text: `나의 꿈 감정 분석 결과를 확인해보세요! ${insight.message.replace(/\*\*/g, "")}`,
+      url: window.location.href,
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch {
+        // 사용자가 취소한 경우 무시
+      }
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+      alert("링크가 복사되었습니다!");
+    }
+  };
+
+  const ShareButton = () => (
+    <button
+      onClick={handleShare}
+      className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors border border-white/10"
+    >
+      친구에게 공유하기
+    </button>
+  );
+
+  const ConsultButton = () => (
+    <button
+      onClick={() => navigate("/dream-chat")}
+      className="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 text-white text-sm font-medium transition-opacity shadow-lg shadow-purple-900/20"
+    >
+      꿈 내용 상담하기
+    </button>
+  );
 
   return (
     <motion.div
@@ -422,7 +465,13 @@ const CoachingSection = ({
 
       <h3 className="text-2xl font-bold text-white leading-relaxed max-w-2xl">
         {insight.message.split(/\*\*(.*?)\*\*/g).map((part, i) =>
-          i % 2 === 1 ? <span key={i} className="text-purple-300">{part}</span> : part
+          i % 2 === 1 ? (
+            <span key={i} className="text-purple-300">
+              {part}
+            </span>
+          ) : (
+            part
+          ),
         )}
       </h3>
 
@@ -434,12 +483,8 @@ const CoachingSection = ({
       </div>
 
       <div className="pt-4 flex gap-3 w-full max-w-md">
-        <button className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors border border-white/10">
-          친구에게 공유하기
-        </button>
-        <button className="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 text-white text-sm font-medium transition-opacity shadow-lg shadow-purple-900/20">
-          프리미엄 상담 예약
-        </button>
+        <ShareButton />
+        <ConsultButton />
       </div>
     </motion.div>
   );
@@ -460,7 +505,9 @@ export default function AnalyticsPage() {
       <div className="min-h-full pt-20 pb-24 px-5 flex flex-col items-center justify-center bg-[#0F0C29]">
         <div className="text-center max-w-sm space-y-6">
           <p className="text-gray-400 text-lg">로그인이 필요합니다.</p>
-          <p className="text-gray-500 text-sm">로그인 후 꿈 분석을 이용할 수 있어요.</p>
+          <p className="text-gray-500 text-sm">
+            로그인 후 꿈 분석을 이용할 수 있어요.
+          </p>
           <button
             type="button"
             onClick={() => navigate("/login")}

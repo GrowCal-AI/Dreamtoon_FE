@@ -10,29 +10,57 @@ import GenerationResult from "@/components/common/GenerationResult";
 
 /** BE genre 키(UPPERCASE) → FE DreamStyle(lowercase) 변환 */
 const GENRE_TO_STYLE: Record<string, DreamStyle> = {
-  CUSTOM: "custom", ROMANCE: "romance", SCHOOL: "school",
-  DARK_FANTASY: "dark-fantasy", HEALING: "healing", COMEDY: "comedy",
-  HORROR: "horror", PIXAR: "pixar", GHIBLI: "ghibli", CYBERPUNK: "cyberpunk",
-  CINEMATIC: "cinematic", VINTAGE: "vintage", MARVEL: "marvel",
-  LEGO: "lego", ANIMAL_CROSSING: "animal-crossing",
+  CUSTOM: "custom",
+  ROMANCE: "romance",
+  SCHOOL: "school",
+  DARK_FANTASY: "dark-fantasy",
+  HEALING: "healing",
+  COMEDY: "comedy",
+  HORROR: "horror",
+  PIXAR: "pixar",
+  GHIBLI: "ghibli",
+  CYBERPUNK: "cyberpunk",
+  CINEMATIC: "cinematic",
+  VINTAGE: "vintage",
+  MARVEL: "marvel",
+  LEGO: "lego",
+  ANIMAL_CROSSING: "animal-crossing",
 };
 
 /** FE DreamStyle → 한글 라벨 */
 const STYLE_LABELS: Record<string, string> = {
-  custom: "맞춤형", romance: "로맨스", school: "학원물",
-  "dark-fantasy": "다크 판타지", healing: "힐링", comedy: "코미디",
-  horror: "호러", pixar: "픽사", ghibli: "지브리", cyberpunk: "사이버펑크",
-  cinematic: "시네마틱", vintage: "빈티지", marvel: "마블",
-  lego: "레고", "animal-crossing": "모동숲",
+  custom: "맞춤형",
+  romance: "로맨스",
+  school: "학원물",
+  "dark-fantasy": "다크 판타지",
+  healing: "힐링",
+  comedy: "코미디",
+  horror: "호러",
+  pixar: "픽사",
+  ghibli: "지브리",
+  cyberpunk: "사이버펑크",
+  cinematic: "시네마틱",
+  vintage: "빈티지",
+  marvel: "마블",
+  lego: "레고",
+  "animal-crossing": "모동숲",
 };
 
 /** BE 라이브러리 API 응답 항목(dreamId, thumbnailUrl 등)을 DreamEntry 형태로 변환 */
 function mapLibraryItemToDreamEntry(item: Record<string, unknown>): DreamEntry {
   const id = String(item.dreamId ?? item.id ?? "");
-  const recordedAt = String(item.recordedAt ?? item.createdAt ?? new Date().toISOString());
-  const createdAt = String(item.createdAt ?? item.recordedAt ?? new Date().toISOString());
-  const rawGenre = String(item.selectedGenre ?? item.genre ?? item.style ?? "HEALING");
-  const style = GENRE_TO_STYLE[rawGenre] ?? rawGenre.toLowerCase().replace(/_/g, "-") as DreamStyle;
+  const recordedAt = String(
+    item.recordedAt ?? item.createdAt ?? new Date().toISOString(),
+  );
+  const createdAt = String(
+    item.createdAt ?? item.recordedAt ?? new Date().toISOString(),
+  );
+  const rawGenre = String(
+    item.selectedGenre ?? item.genre ?? item.style ?? "HEALING",
+  );
+  const style =
+    GENRE_TO_STYLE[rawGenre] ??
+    (rawGenre.toLowerCase().replace(/_/g, "-") as DreamStyle);
   return {
     id,
     userId: String(item.userId ?? ""),
@@ -43,7 +71,9 @@ function mapLibraryItemToDreamEntry(item: Record<string, unknown>): DreamEntry {
     inputMethod: "text",
     style,
     format: "webtoon",
-    scenes: Array.isArray(item.scenes) ? (item.scenes as DreamEntry["scenes"]) : [],
+    scenes: Array.isArray(item.scenes)
+      ? (item.scenes as DreamEntry["scenes"])
+      : [],
     analysis: (item.analysis as DreamEntry["analysis"]) ?? {
       emotions: {} as DreamEntry["analysis"]["emotions"],
       tensionLevel: 0,
@@ -53,7 +83,11 @@ function mapLibraryItemToDreamEntry(item: Record<string, unknown>): DreamEntry {
       relationshipPatterns: [],
       hasResolution: false,
     },
-    webtoonUrl: item.webtoonUrl ? String(item.webtoonUrl) : item.thumbnailUrl ? String(item.thumbnailUrl) : undefined,
+    webtoonUrl: item.webtoonUrl
+      ? String(item.webtoonUrl)
+      : item.thumbnailUrl
+        ? String(item.thumbnailUrl)
+        : undefined,
     videoUrl: item.videoUrl ? String(item.videoUrl) : undefined,
     tags: Array.isArray(item.tags) ? (item.tags as string[]) : [],
     isFavorite: Boolean(item.isFavorite),
@@ -116,7 +150,9 @@ const DreamCard = memo(
               {STYLE_LABELS[dream.style] ?? dream.style}
             </span>
           </div>
-          <p className="text-sm text-gray-300 line-clamp-2">{dream.content || "꿈 기록"}</p>
+          <p className="text-sm text-gray-300 line-clamp-2">
+            {dream.content || "꿈 기록"}
+          </p>
           {(dream.tags?.length ?? 0) > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {dream.tags.slice(0, 3).map((tag, i) => (
@@ -142,7 +178,9 @@ export default function LibraryPage() {
   const { isLoggedIn } = useAuthStore();
   const navigate = useNavigate();
   const [selectedDream, setSelectedDream] = useState<DreamEntry | null>(null);
-  const [fullDreamDetail, setFullDreamDetail] = useState<DreamEntry | null>(null);
+  const [fullDreamDetail, setFullDreamDetail] = useState<DreamEntry | null>(
+    null,
+  );
   const [libraryDreams, setLibraryDreams] = useState<DreamEntry[]>([]);
   const [filterStyle, setFilterStyle] = useState<DreamStyle | "all">("all");
   const [showFavorites, setShowFavorites] = useState(false);
@@ -167,9 +205,14 @@ export default function LibraryPage() {
         if (filterStyle !== "all") params.genre = styleToGenre(filterStyle);
         if (showFavorites) params.favorite = true;
         const result = await libraryAPI.getLibrary(params as any);
-        const raw = result?.dreams ?? result?.content ?? (Array.isArray(result) ? result : []);
+        const raw =
+          result?.dreams ??
+          result?.content ??
+          (Array.isArray(result) ? result : []);
         const list = Array.isArray(raw) ? raw : [];
-        const mapped = list.map((item: Record<string, unknown>) => mapLibraryItemToDreamEntry(item));
+        const mapped = list.map((item: Record<string, unknown>) =>
+          mapLibraryItemToDreamEntry(item),
+        );
         setLibraryDreams(mapped);
       } catch {
         setLibraryDreams(dreams);
@@ -186,7 +229,10 @@ export default function LibraryPage() {
     if (showFavorites) {
       result = result.filter((dream) => dream.isFavorite);
     }
-    result.sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime());
+    result.sort(
+      (a, b) =>
+        new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
+    );
     return result;
   }, [libraryDreams, filterStyle, showFavorites]);
 
@@ -242,7 +288,9 @@ export default function LibraryPage() {
       <div className="min-h-full pt-20 pb-24 px-5 flex flex-col items-center justify-center bg-[#0F0C29]">
         <div className="text-center max-w-sm space-y-6">
           <p className="text-gray-400 text-lg">로그인이 필요합니다.</p>
-          <p className="text-gray-500 text-sm">로그인 후 나만의 꿈 라이브러리를 이용할 수 있어요.</p>
+          <p className="text-gray-500 text-sm">
+            로그인 후 나만의 꿈 라이브러리를 이용할 수 있어요.
+          </p>
           <button
             type="button"
             onClick={() => navigate("/login")}
@@ -305,7 +353,9 @@ export default function LibraryPage() {
               }`}
             >
               <span>
-                {filterStyle === "all" ? "모든 스타일" : STYLE_LABELS[filterStyle] ?? filterStyle}
+                {filterStyle === "all"
+                  ? "모든 스타일"
+                  : (STYLE_LABELS[filterStyle] ?? filterStyle)}
               </span>
               <ChevronDown
                 className={`w-4 h-4 transition-transform ${
@@ -328,12 +378,6 @@ export default function LibraryPage() {
                   {[
                     { value: "all", label: "모든 스타일" },
                     { value: "custom", label: "맞춤형" },
-                    { value: "romance", label: "로맨스" },
-                    { value: "school", label: "학원물" },
-                    { value: "dark-fantasy", label: "다크 판타지" },
-                    { value: "healing", label: "힐링" },
-                    { value: "comedy", label: "코미디" },
-                    { value: "horror", label: "호러" },
                     { value: "ghibli", label: "지브리" },
                     { value: "marvel", label: "마블" },
                     { value: "lego", label: "레고" },
@@ -376,8 +420,12 @@ export default function LibraryPage() {
             animate={{ opacity: 1 }}
             className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-12 text-center min-h-[200px] flex flex-col items-center justify-center"
           >
-            <p className="text-lg font-medium text-gray-300">기록된 꿈이 없습니다</p>
-            <p className="text-sm text-gray-500 mt-2">웹툰 결과에서 &#39;라이브러리에 저장&#39;을 누르면 여기에 쌓여요.</p>
+            <p className="text-lg font-medium text-gray-300">
+              기록된 꿈이 없습니다
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              웹툰 결과에서 &#39;라이브러리에 저장&#39;을 누르면 여기에 쌓여요.
+            </p>
           </motion.div>
         ) : (
           <motion.div
