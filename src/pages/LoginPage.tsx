@@ -14,11 +14,11 @@ export default function LoginPage() {
     const { testLogin } = useAuthStore()
 
     const handleKakaoLogin = () => {
-        window.location.href = `${BE_BASE_URL}/oauth2/authorization/kakao`
+        window.location.href = `${BE_BASE_URL}/oauth2/authorization/kakao?redirect_uri=${encodeURIComponent(window.location.origin)}`
     }
 
     const handleGoogleLogin = () => {
-        window.location.href = `${BE_BASE_URL}/oauth2/authorization/google`
+        window.location.href = `${BE_BASE_URL}/oauth2/authorization/google?redirect_uri=${encodeURIComponent(window.location.origin)}`
     }
 
     const handleDevLogin = async () => {
