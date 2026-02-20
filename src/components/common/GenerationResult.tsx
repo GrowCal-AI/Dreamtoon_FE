@@ -27,12 +27,22 @@ interface GenerationResultProps {
   type: "webtoon" | "animation";
   isSaved: boolean;
   scenes?: SceneData[];
+  dreamId?: string;
   onSave?: () => void;
   onReset?: () => void;
   onTalkMore?: () => void;
   onClose?: () => void;
   initialFavorite?: boolean;
 }
+
+const FAVORITES_KEY = "dreamics_favorites";
+const getFavoriteIds = (): string[] => {
+  try {
+    return JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
 
 const GenerationResult = ({
   title,
@@ -41,39 +51,165 @@ const GenerationResult = ({
   type,
   isSaved,
   scenes,
+  dreamId,
   onSave,
   onReset,
   onTalkMore,
   onClose,
   initialFavorite = false,
 }: GenerationResultProps) => {
-  const panelImages = scenes?.filter((s) => s.imageUrl).map((s) => s.imageUrl!) || [];
+  const panelImages =
+    scenes?.filter((s) => s.imageUrl).map((s) => s.imageUrl!) || [];
   const has4Panels = panelImages.length >= 4;
-  const [isFavorite, setIsFavorite] = useState(initialFavorite);
+  const [isFavorite, setIsFavorite] = useState(() => {
+    if (dreamId) return getFavoriteIds().includes(dreamId);
+    return initialFavorite;
+  });
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
 
   const handleFavorite = () => {
+    const favorites = getFavoriteIds();
+    if (isFavorite) {
+      const updated = favorites.filter((id) => id !== dreamId);
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify(updated));
+    } else {
+      if (dreamId && !favorites.includes(dreamId)) {
+        favorites.push(dreamId);
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+      }
+    }
     setIsFavorite(!isFavorite);
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
+    const shareUrl = dreamId
+      ? `${window.location.origin}/webtoon/${dreamId}`
+      : window.location.href;
+
+    if (navigator.share) {
+      try {
+        const imageUrl = has4Panels ? panelImages[0] : mediaUrl;
+        // 이미지 파일 공유 지원 여부 확인
+        if (imageUrl) {
+          try {
+            const response = await fetch(imageUrl, { mode: "cors" });
+            const blob = await response.blob();
+            const file = new File([blob], "dreamics-webtoon.jpg", {
+              type: blob.type,
+            });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              await navigator.share({
+                title: `✨ ${title} - Dreamics.ai`,
+                text: "AI가 나의 꿈을 4컷 웹툰으로 만들어줘요!",
+                files: [file],
+              });
+              return;
+            }
+          } catch {
+            // 이미지 가져오기 실패 시 URL 공유로 fallback
+          }
+        }
+        await navigator.share({
+          title: `✨ ${title} - Dreamics.ai`,
+          text: "AI가 나의 꿈을 4컷 웹툰으로 만들어줘요!",
+          url: shareUrl,
+        });
+        return;
+      } catch {
+        // 사용자 취소 또는 실패 시 모달로
+      }
+    }
     setIsShareOpen(true);
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
+    // 웹툰 이미지 URL이 있으면 해당 URL, 없으면 공유 가능한 페이지 URL 복사
+    const shareUrl = dreamId
+      ? `${window.location.origin}/webtoon/${dreamId}`
+      : mediaUrl || window.location.href;
+    navigator.clipboard.writeText(shareUrl);
     setShareCopied(true);
     setTimeout(() => setShareCopied(false), 2000);
   };
 
-  const handleDownload = () => {
-    const link = document.createElement("a");
-    link.href = mediaUrl;
-    link.download = `dream-${type}.jpg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  // TODO: 카카오톡 공유 - MVP 이후 구현 예정
+  // const handleKakaoShare = () => {
+  //   const kakao = (window as any).Kakao;
+  //   if (!kakao) { alert("카카오 SDK를 불러오지 못했습니다."); return; }
+  //   if (!kakao.isInitialized()) {
+  //     const kakaoKey = import.meta.env.VITE_KAKAO_APP_KEY;
+  //     if (!kakaoKey) { alert("카카오 앱 키가 설정되지 않았습니다."); return; }
+  //     kakao.init(kakaoKey);
+  //   }
+  //   const shareUrl = dreamId ? `${window.location.origin}/webtoon/${dreamId}` : window.location.origin;
+  //   kakao.Share.sendDefault({ ... });
+  // };
+
+  const handleDownload = async () => {
+    const loadImage = (url: string): Promise<HTMLImageElement> =>
+      new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+      });
+
+    const downloadBlob = (blob: Blob, filename: string) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    try {
+      if (has4Panels && panelImages.length >= 4) {
+        // 4컷 이미지를 canvas로 합치서 다운로드
+        const panelW = 400;
+        const panelH = 711; // 9:16 비율
+        const gap = 4;
+        const canvas = document.createElement("canvas");
+        canvas.width = panelW * 2 + gap;
+        canvas.height = panelH * 2 + gap;
+        const ctx = canvas.getContext("2d")!;
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const images = await Promise.all(
+          panelImages.slice(0, 4).map(loadImage),
+        );
+        const positions = [
+          [0, 0],
+          [panelW + gap, 0],
+          [0, panelH + gap],
+          [panelW + gap, panelH + gap],
+        ];
+        images.forEach((img, i) => {
+          ctx.drawImage(img, positions[i][0], positions[i][1], panelW, panelH);
+        });
+        canvas.toBlob(
+          (blob) => blob && downloadBlob(blob, `dreamics-${title}.png`),
+          "image/png",
+        );
+      } else {
+        // 단일 이미지 다운로드
+        const response = await fetch(mediaUrl, { mode: "cors" });
+        const blob = await response.blob();
+        downloadBlob(blob, `dreamics-${title}.jpg`);
+      }
+    } catch {
+      // CORS 실패 시 직접 다운로드 fallback
+      const a = document.createElement("a");
+      a.href = mediaUrl;
+      a.download = `dreamics-${title}.jpg`;
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
   };
 
   return (
@@ -276,11 +412,15 @@ const GenerationResult = ({
                   친구들에게 들려주세요.
                 </p>
 
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <button className="flex flex-col items-center justify-center p-4 rounded-xl bg-[#FAE100] text-[#371D1E] font-medium hover:opacity-90 transition-opacity border border-transparent">
+                <div className="grid grid-cols-1 gap-3 mb-4">
+                  {/* TODO: 카카오톡 공유 - MVP 이후 구현 예정 */}
+                  {/* <button
+                    onClick={handleKakaoShare}
+                    className="flex flex-col items-center justify-center p-4 rounded-xl bg-[#FAE100] text-[#371D1E] font-medium hover:opacity-90 transition-opacity border border-transparent"
+                  >
                     <MessageCircle size={24} className="mb-2" />
                     카카오톡
-                  </button>
+                  </button> */}
                   <button
                     onClick={handleCopyLink}
                     className="flex flex-col items-center justify-center p-4 rounded-xl bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-colors"
@@ -322,7 +462,7 @@ const GenerationResult = ({
                 onClick={onTalkMore}
                 className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold shadow-lg shadow-purple-900/40 hover:shadow-purple-500/30 transition-all flex items-center justify-center gap-2"
               >
-                <MessageCircle size={18} />꿈 더 대화하기
+                <MessageCircle size={18} />꿈 내용 상담하기
               </button>
             )}
           </div>
