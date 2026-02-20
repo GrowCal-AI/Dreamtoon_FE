@@ -143,7 +143,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     logout: () => {
         authAPI.logout().catch(() => {})
         localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
         set({ isLoggedIn: false, user: null, usage: null })
     },
 

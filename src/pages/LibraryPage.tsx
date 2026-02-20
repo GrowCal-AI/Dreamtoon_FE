@@ -99,6 +99,7 @@ function mapLibraryItemToDreamEntry(item: Record<string, unknown>): DreamEntry {
         : undefined,
     videoUrl: item.videoUrl ? String(item.videoUrl) : undefined,
     tags: Array.isArray(item.tags) ? (item.tags as string[]) : [],
+    genreName: item.genreName ? String(item.genreName) : undefined,
     isFavorite: Boolean(item.isFavorite),
     isInLibrary: true,
   };
@@ -156,7 +157,7 @@ const DreamCard = memo(
               {formatDateShort(dream.recordedAt)}
             </span>
             <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full">
-              {STYLE_LABELS[dream.style] ?? dream.style}
+              {dream.genreName ?? STYLE_LABELS[dream.style] ?? dream.style}
             </span>
           </div>
           <p className="text-sm text-gray-300 line-clamp-2">

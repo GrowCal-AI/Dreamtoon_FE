@@ -43,14 +43,11 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken')
-        const res = await apiClient.post('/auth/refresh', { refreshToken })
-        const raw = res.data
-        const newToken = raw?.accessToken ?? raw?.data?.accessToken
-        const newRefresh = raw?.refreshToken ?? raw?.data?.refreshToken
+        // Refresh Token은 HttpOnly Cookie로 자동 전송됨 (withCredentials: true)
+        const res = await apiClient.post('/auth/refresh')
+        const newToken = res.data?.accessToken
         if (newToken) {
           localStorage.setItem('accessToken', newToken)
-          if (newRefresh) localStorage.setItem('refreshToken', newRefresh)
           originalRequest.headers.Authorization = `Bearer ${newToken}`
           return apiClient(originalRequest)
         }

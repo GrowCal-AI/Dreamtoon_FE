@@ -58,6 +58,7 @@ export interface DreamEntry {
   webtoonUrl?: string
   videoUrl?: string
   tags: string[]
+  genreName?: string
   isFavorite: boolean
   isInLibrary?: boolean
   processingStatus?: string
