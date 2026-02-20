@@ -254,6 +254,8 @@ export default function DreamInputPage() {
   const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // initialMessage(홈페이지 입력)를 저장 - 입력칸에는 표시하지 않음
+  const initialDreamRef = useRef<string>("");
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"style" | "deep_chat">("style");
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
@@ -521,8 +523,8 @@ export default function DreamInputPage() {
           setStep(1);
           startVoiceStep(0);
         } else if (initialMessage) {
+          initialDreamRef.current = initialMessage; // 분석용으로 저장, 입력칸에는 표시 안 함
           addMessage({ role: "user", content: initialMessage, type: "text" });
-          setDreamContent(initialMessage);
           addMessage({
             role: "ai",
             content: `"${initialMessage}" 꿈에서 느낀 감정을 선택해주세요.`,
@@ -565,8 +567,11 @@ export default function DreamInputPage() {
 
   // step 2: 꿈 상세 설명 제출 → step 3(현실 고민)으로 이동
   const handleDreamDetailSubmit = () => {
-    if (!dreamContent.trim()) return;
-    addMessage({ role: "user", content: dreamContent, type: "text" });
+    // 입력칸이 비어있으면 initialDreamRef(홈 입력값) fallback 사용
+    const content = dreamContent.trim() || initialDreamRef.current;
+    if (!content) return;
+    addMessage({ role: "user", content, type: "text" });
+    initialDreamRef.current = ""; // 사용 후 clear
     setDreamContent("");
     setTimeout(() => {
       addMessage({
