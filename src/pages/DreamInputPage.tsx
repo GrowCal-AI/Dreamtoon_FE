@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Mic, Send, Sparkles, Loader2, X } from "lucide-react";
+import { Mic, Send, Loader2, Sparkles } from "lucide-react";
 import PricingPage from "@/pages/PricingPage";
 import GenerationResult from "@/components/common/GenerationResult";
+import { EmotionChip, AnalysisDashboard, StyleCard } from "@/components/features/dream";
+import { SubscriptionPrompt } from "@/pages/DreamInputPage/components/SubscriptionPrompt";
+import { STANDARD_FILTERS, PREMIUM_FILTERS, EMOTION_MAP, EMOTION_REACTIONS } from "@/pages/DreamInputPage/constants";
 
 import { useChatStore } from "@/store/useChatStore";
 import { useDreamStore } from "@/store/useDreamStore";
@@ -11,241 +14,6 @@ import { useAuthStore } from "@/store/useAuthStore";
 import LoginModal from "@/components/common/LoginModal";
 import { EmotionType, DreamStyle } from "@/types";
 import { dreamAPI } from "@/services/api";
-import {
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ResponsiveContainer,
-} from "recharts";
-
-// --- Components ---
-
-const EmotionChip = ({
-  label,
-  emoji,
-  onClick,
-}: {
-  emotion: EmotionType;
-  label: string;
-  emoji: string;
-  onClick: () => void;
-}) => (
-  <motion.button
-    whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
-    whileTap={{ scale: 0.95 }}
-    onClick={onClick}
-    className="flex flex-col items-center justify-center p-4 rounded-full glass-card hover:bg-white/10 transition-all w-24 h-24"
-  >
-    <span className="text-3xl mb-1">{emoji}</span>
-    <span className="text-xs font-medium text-gray-200">{label}</span>
-  </motion.button>
-);
-
-const AnalysisDashboard = ({ analysis }: { analysis: any }) => {
-  // BE emotionScores는 한글 키(기쁨, 분노 등) 또는 영문 키(JOY, ANGER 등)로 반환됨
-  const scores = analysis?.emotionScores || {};
-  const get = (ko: string, en: string) =>
-    scores[ko] ?? scores[en] ?? scores[en.toLowerCase()] ?? 0;
-  const data = [
-    { subject: "기쁨", A: get("기쁨", "JOY"), fullMark: 100 },
-    { subject: "불안", A: get("불안", "ANXIETY"), fullMark: 100 },
-    { subject: "분노", A: get("분노", "ANGER"), fullMark: 100 },
-    { subject: "슬픔", A: get("슬픔", "SADNESS"), fullMark: 100 },
-    {
-      subject: "놀람",
-      A: get("놀람", "SURPRISE") || get("불편", "DISCOMFORT"),
-      fullMark: 100,
-    },
-    { subject: "평온", A: get("평온", "PEACE"), fullMark: 100 },
-  ];
-
-  const insight = analysis?.aiInsight;
-
-  return (
-    <div className="w-full max-w-md glass-card p-6">
-      <h3 className="text-lg font-bold text-white mb-4 text-center">
-        꿈 감정 분석
-      </h3>
-      <div className="h-64 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
-            <PolarGrid stroke="rgba(255,255,255,0.1)" />
-            <PolarAngleAxis
-              dataKey="subject"
-              tick={{ fill: "#9ca3af", fontSize: 12 }}
-            />
-            <PolarRadiusAxis
-              angle={30}
-              domain={[0, 100]}
-              tick={false}
-              axisLine={false}
-            />
-            <Radar
-              name="My Dream"
-              dataKey="A"
-              stroke="#8b5cf6"
-              fill="#8b5cf6"
-              fillOpacity={0.6}
-            />
-          </RadarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {insight && (
-        <div className="mt-4 p-4 bg-purple-500/10 rounded-xl border border-purple-500/20">
-          <div className="flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
-            <p className="text-sm text-gray-200 leading-relaxed">{insight}</p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const StyleCard = ({
-  label,
-  desc,
-  onClick,
-  selected,
-  isPremium = false,
-}: {
-  style: string;
-  label: string;
-  desc: string;
-  onClick: () => void;
-  selected: boolean;
-  isPremium?: boolean;
-}) => (
-  <motion.button
-    onClick={onClick}
-    whileHover={{ scale: 1.02 }}
-    whileTap={{ scale: 0.98 }}
-    className={`relative p-4 rounded-xl text-left transition-all border overflow-hidden glass-card ${
-      selected
-        ? "border-purple-500 bg-purple-500/20 shadow-glow"
-        : "border-white/10 hover:border-purple-400/50"
-    }`}
-  >
-    {isPremium && (
-      <div className="absolute top-0 right-0 bg-gradient-to-bl from-amber-400 to-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg shadow-sm z-10">
-        PRO
-      </div>
-    )}
-    <div className="font-bold text-white flex items-center gap-1">{label}</div>
-    <div className="text-xs text-gray-400">{desc}</div>
-  </motion.button>
-);
-
-// --- Style Configurations ---
-
-const STANDARD_FILTERS = [
-  {
-    id: "custom",
-    label: "맞춤형 필터",
-    desc: "AI가 자동으로 선택",
-    isPremium: false,
-  },
-];
-
-const PREMIUM_FILTERS = [
-  { id: "ghibli", label: "지브리", desc: "몽글몽글한 감성", isPremium: true },
-  {
-    id: "marvel",
-    label: "마블",
-    desc: "히어로 코믹스 스타일",
-    isPremium: true,
-  },
-  { id: "lego", label: "레고", desc: "귀여운 블록 세계", isPremium: true },
-  {
-    id: "animal-crossing",
-    label: "모동숲",
-    desc: "포근한 동물의 숲",
-    isPremium: true,
-  },
-];
-// --- Post-Generation Components ---
-
-const SubscriptionModal = ({
-  onClose,
-  onSubscribe,
-  title,
-  description,
-  benefits,
-  buttonText,
-}: {
-  onClose: () => void;
-  onSubscribe: () => void;
-  title: React.ReactNode;
-  description: React.ReactNode;
-  benefits: string[];
-  buttonText: string;
-}) => (
-  <motion.div
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
-  >
-    <motion.div
-      initial={{ scale: 0.9, y: 20 }}
-      animate={{ scale: 1, y: 0 }}
-      exit={{ scale: 0.9, y: 20 }}
-      className="bg-[#1A1638] border border-white/10 rounded-3xl p-8 w-full max-w-sm shadow-2xl relative overflow-hidden text-center"
-    >
-      <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-br from-teal-400/20 to-purple-500/20 opacity-30 pointer-events-none" />
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-20"
-      >
-        <X size={24} />
-      </button>
-
-      <div className="relative z-10 pt-2">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-teal-400 to-emerald-500 flex items-center justify-center mx-auto mb-6 shadow-glow animate-pulse">
-          <Sparkles className="w-10 h-10 text-white" />
-        </div>
-
-        <h2 className="text-2xl font-bold text-white mb-3 leading-tight">
-          {title}
-        </h2>
-
-        <p className="text-gray-300 text-sm leading-relaxed mb-6 px-1">
-          {description}
-        </p>
-
-        <div className="flex flex-wrap justify-center gap-2 mb-8">
-          {benefits.map((tag, i) => (
-            <span
-              key={i}
-              className="px-3 py-1.5 bg-white/5 text-gray-300 text-xs font-semibold rounded-lg border border-white/10"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        <div className="space-y-3">
-          <button
-            onClick={onSubscribe}
-            className="w-full py-4 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-bold shadow-lg shadow-teal-500/30 hover:shadow-teal-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-          >
-            <Sparkles size={18} />
-            {buttonText}
-          </button>
-          <button
-            onClick={onClose}
-            className="w-full py-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white font-medium text-sm transition-colors"
-          >
-            나중에 하기
-          </button>
-        </div>
-      </div>
-    </motion.div>
-  </motion.div>
-);
 
 // --- Main Page ---
 
@@ -447,29 +215,7 @@ export default function DreamInputPage() {
       setDreamContent(spoken);
       setTimeout(() => startVoiceStepRef.current(1), 300);
     } else if (vStep === 1) {
-      const emotionMap: Record<string, EmotionType> = {
-        기쁨: "joy",
-        기뻐: "joy",
-        좋아: "joy",
-        즐거: "joy",
-        불안: "anxiety",
-        걱정: "anxiety",
-        무서: "anxiety",
-        분노: "anger",
-        화: "anger",
-        짜증: "anger",
-        슬픔: "sadness",
-        슬퍼: "sadness",
-        우울: "sadness",
-        놀람: "surprise",
-        놀라: "surprise",
-        깜짝: "surprise",
-        평온: "peace",
-        편안: "peace",
-        차분: "peace",
-        고요: "peace",
-      };
-      const matched = Object.entries(emotionMap).find(([k]) =>
+      const matched = Object.entries(EMOTION_MAP).find(([k]) =>
         spoken.includes(k),
       );
       const emotion: EmotionType = matched ? matched[1] : "peace";
@@ -972,7 +718,7 @@ export default function DreamInputPage() {
 
         <AnimatePresence>
           {showPremiumModal && (
-            <SubscriptionModal
+            <SubscriptionPrompt
               onClose={() => setShowPremiumModal(false)}
               onSubscribe={handleSubscribe}
               title={
@@ -1176,7 +922,7 @@ export default function DreamInputPage() {
                 스탠다드 필터
               </h3>
               <div className="grid grid-cols-1 gap-3">
-                {STANDARD_FILTERS.map((s) => (
+                {STANDARD_FILTERS.map((s: { id: string; label: string; desc: string; isPremium: boolean }) => (
                   <StyleCard
                     key={s.id}
                     style={s.id}
@@ -1196,7 +942,7 @@ export default function DreamInputPage() {
                 프리미엄 필터
               </h3>
               <div className="grid grid-cols-2 gap-3">
-                {PREMIUM_FILTERS.map((s) => (
+                {PREMIUM_FILTERS.map((s: { id: string; label: string; desc: string; isPremium: boolean }) => (
                   <StyleCard
                     key={s.id}
                     style={s.id}
@@ -1220,7 +966,7 @@ export default function DreamInputPage() {
       {/* Global Modals */}
       <AnimatePresence>
         {showPremiumModal && (
-          <SubscriptionModal
+          <SubscriptionPrompt
             onClose={() => setShowPremiumModal(false)}
             onSubscribe={handleSubscribe}
             title={
@@ -1390,7 +1136,7 @@ export default function DreamInputPage() {
 
 // Helpers
 const getEmotionLabel = (e: EmotionType) => {
-  const map: Record<string, string> = {
+  const labels: Record<EmotionType, string> = {
     joy: "기뻤어",
     anxiety: "불안했어",
     anger: "화났어",
@@ -1398,18 +1144,9 @@ const getEmotionLabel = (e: EmotionType) => {
     surprise: "놀랐어",
     peace: "평온했어",
   };
-  return map[e] || e;
+  return labels[e] || e;
 };
 
 const getEmotionReaction = (e: EmotionType) => {
-  const map: Record<string, string> = {
-    joy: "좋은 꿈을 꾸셨군요! 어떤 점이 가장 즐거우셨나요?",
-    anxiety: "저런, 마음이 많이 쓰이셨겠어요. 무엇 때문에 불안하셨나요?",
-    anger:
-      "화가 나는 일이 있었군요. 꿈속에서 무슨 일이 있었는지 말씀해 주실래요?",
-    sadness: "슬픈 꿈이었군요... 괜찮으시다면 이야기를 더 들려주시겠어요?",
-    surprise: "깜짝 놀라셨군요! 어떤 장면이 가장 기억에 남으세요?",
-    peace: "편안한 꿈이라 다행이에요. 어떤 풍경이 펼쳐졌나요?",
-  };
-  return map[e] || "그렇군요. 더 자세히 이야기해 주실래요?";
+  return EMOTION_REACTIONS[e] || "그렇군요. 더 자세히 이야기해 주실래요?";
 };

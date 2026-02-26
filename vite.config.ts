@@ -20,9 +20,15 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'animation': ['framer-motion'],
           'charts': ['recharts'],
+          'icons': ['lucide-react'],
         },
       },
     },
+    // 소스맵 비활성화 (프로덕션 번들 크기 감소)
+    sourcemap: false,
+    // Minification 옵션
+    minify: 'esbuild',
+    target: 'es2015',
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom'],
