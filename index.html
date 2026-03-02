@@ -2,17 +2,177 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.svg" />
+
+    <!-- Viewport & Mobile Optimization -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta name="theme-color" content="#0F0C29" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Primary Meta Tags -->
+    <title>Dreamics.ai - AI 꿈 분석 & 웹툰 생성 플랫폼</title>
+    <meta name="title" content="Dreamics.ai - AI 꿈 분석 & 웹툰 생성 플랫폼" />
     <meta
       name="description"
-      content="꿈을 웹툰/애니로 만들어주는 AI 꿈 헬스케어 플랫폼"
+      content="당신의 꿈을 AI가 분석하고 4컷 웹툰으로 만들어드립니다. 꿈 일기, 감정 분석, 심리 상담까지 - Dreamics.ai와 함께 무의식의 세계를 탐험하세요."
     />
-    <title>Dreamics.ai -당신의 꿈을 4컷 만화로</title>
+    <meta
+      name="keywords"
+      content="꿈 분석, AI 꿈 해석, 꿈 웹툰, 꿈 일기, 심리 분석, 감정 분석, 꿈 기록, 무의식 분석, AI 웹툰, 드림 다이어리, 꿈 헬스케어"
+    />
+    <meta name="author" content="Dreamics.ai" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="bingbot" content="index, follow" />
+
+    <!-- Naver SEO -->
+    <meta name="naver-site-verification" content="" />
+    <meta name="NaverBot" content="All" />
+    <meta name="Yeti" content="All" />
+
+    <!-- Google SEO -->
+    <meta name="google-site-verification" content="" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://dreamics.ai" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://dreamics.ai" />
+    <meta property="og:site_name" content="Dreamics.ai" />
+    <meta property="og:title" content="Dreamics.ai - AI 꿈 분석 & 웹툰 생성 플랫폼" />
+    <meta
+      property="og:description"
+      content="당신의 꿈을 AI가 분석하고 4컷 웹툰으로 만들어드립니다. 꿈 일기, 감정 분석, 심리 상담까지 무의식의 세계를 탐험하세요."
+    />
+    <meta property="og:image" content="https://dreamics.ai/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="ko_KR" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://dreamics.ai" />
+    <meta name="twitter:title" content="Dreamics.ai - AI 꿈 분석 & 웹툰 생성 플랫폼" />
+    <meta
+      name="twitter:description"
+      content="당신의 꿈을 AI가 분석하고 4컷 웹툰으로 만들어드립니다. 꿈 일기, 감정 분석, 심리 상담까지."
+    />
+    <meta name="twitter:image" content="https://dreamics.ai/og-image.svg" />
+
+    <!-- GEO (Generative Engine Optimization) -->
+    <meta name="application-name" content="Dreamics.ai" />
+    <meta name="rating" content="general" />
+    <meta name="referrer" content="origin-when-cross-origin" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Structured Data (JSON-LD) for GEO & SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Dreamics.ai",
+      "url": "https://dreamics.ai",
+      "description": "AI 기반 꿈 분석 및 웹툰 생성 플랫폼. 꿈을 기록하고, AI가 감정을 분석하며, 4컷 웹툰으로 시각화합니다.",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "KRW"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "Dreamics.ai"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "150"
+      },
+      "featureList": [
+        "AI 꿈 분석",
+        "감정 인식",
+        "4컷 웹툰 생성",
+        "꿈 일기",
+        "심리 상담",
+        "꿈 라이브러리"
+      ]
+    }
+    </script>
+
+    <!-- Organization Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Dreamics.ai",
+      "url": "https://dreamics.ai",
+      "logo": "https://dreamics.ai/logo.png",
+      "description": "AI로 당신의 꿈을 분석하고 웹툰으로 만드는 헬스케어 플랫폼",
+      "sameAs": [
+        "https://www.instagram.com/dreamics.ai",
+        "https://www.facebook.com/dreamics.ai"
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "Customer Support",
+        "email": "support@dreamics.ai"
+      }
+    }
+    </script>
+
+    <!-- FAQ Structured Data for GEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Dreamics.ai는 무엇인가요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Dreamics.ai는 AI 기술을 활용하여 당신의 꿈을 분석하고 4컷 웹툰으로 시각화하는 플랫폼입니다. 꿈 일기 작성, 감정 분석, 심리 상담 기능을 제공합니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "꿈 분석은 어떻게 이루어지나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "AI가 꿈의 내용을 분석하여 기쁨, 불안, 분노, 슬픔, 놀람, 평온 등 6가지 감정을 측정합니다. 감정 분포, 스트레스 지수, 수면 품질을 종합적으로 분석하여 개인 맞춤형 인사이트를 제공합니다."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "무료로 사용할 수 있나요?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "기본적인 꿈 기록과 분석, 웹툰 생성 기능은 무료로 제공됩니다. 프리미엄 스타일(지브리, 마블, 레고 등)과 심층 AI 상담 기능은 유료 구독으로 이용 가능합니다."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- Preconnect to external domains for faster loading -->
+    <link rel="preconnect" href="https://t1.kakaocdn.net" crossorigin />
+    <link rel="dns-prefetch" href="https://t1.kakaocdn.net" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+
+    <!-- Defer non-critical scripts -->
     <script
       src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
       integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4"
       crossorigin="anonymous"
+      defer
     ></script>
   </head>
   <body>

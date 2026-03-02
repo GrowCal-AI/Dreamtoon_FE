@@ -1,0 +1,37 @@
+# robots.txt for Dreamics.ai
+# AI 꿈 분석 & 웹툰 생성 플랫폼
+
+# Allow all search engines to crawl all content
+User-agent: *
+Allow: /
+
+# Korean search engines
+User-agent: Yeti
+Allow: /
+
+User-agent: NaverBot
+Allow: /
+
+User-agent: Daumoa
+Allow: /
+
+# International search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# Disallow crawling of specific paths
+Disallow: /api/
+Disallow: /admin/
+Disallow: /*.json$
+
+# Sitemap location
+Sitemap: https://dreamics.ai/sitemap.xml
+
+# Crawl-delay for polite crawling (optional, in seconds)
+# Crawl-delay: 1
