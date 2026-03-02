@@ -1,187 +1,20 @@
-import { useState, useMemo, memo, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ChevronDown, Heart, Calendar, LogIn, Loader2 } from "lucide-react";
+import { LogIn, Loader2 } from "lucide-react";
 import { useDreamStore } from "@/store/useDreamStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { libraryAPI, dreamAPI } from "@/services/api";
 import { DreamEntry, DreamStyle, formatDateShort } from "@/types";
 import GenerationResult from "@/components/common/GenerationResult";
-
-const FAVORITES_KEY = "dreamics_favorites";
-const getLocalFavoriteIds = (): string[] => {
-  try {
-    return JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]");
-  } catch {
-    return [];
-  }
-};
-
-/** BE genre 키(UPPERCASE) → FE DreamStyle(lowercase) 변환 */
-const GENRE_TO_STYLE: Record<string, DreamStyle> = {
-  CUSTOM: "custom",
-  ROMANCE: "romance",
-  SCHOOL: "school",
-  DARK_FANTASY: "dark-fantasy",
-  HEALING: "healing",
-  COMEDY: "comedy",
-  HORROR: "horror",
-  PIXAR: "pixar",
-  GHIBLI: "ghibli",
-  CYBERPUNK: "cyberpunk",
-  CINEMATIC: "cinematic",
-  VINTAGE: "vintage",
-  MARVEL: "marvel",
-  LEGO: "lego",
-  ANIMAL_CROSSING: "animal-crossing",
-};
-
-/** FE DreamStyle → 한글 라벨 */
-const STYLE_LABELS: Record<string, string> = {
-  custom: "맞춤형",
-  romance: "로맨스",
-  school: "학원물",
-  "dark-fantasy": "다크 판타지",
-  healing: "힐링",
-  comedy: "코미디",
-  horror: "호러",
-  pixar: "픽사",
-  ghibli: "지브리",
-  cyberpunk: "사이버펑크",
-  cinematic: "시네마틱",
-  vintage: "빈티지",
-  marvel: "마블",
-  lego: "레고",
-  "animal-crossing": "모동숲",
-};
-
-/** BE 라이브러리 API 응답 항목(dreamId, thumbnailUrl 등)을 DreamEntry 형태로 변환 */
-function mapLibraryItemToDreamEntry(item: Record<string, unknown>): DreamEntry {
-  const id = String(item.dreamId ?? item.id ?? "");
-  const recordedAt = String(
-    item.recordedAt ?? item.createdAt ?? new Date().toISOString(),
-  );
-  const createdAt = String(
-    item.createdAt ?? item.recordedAt ?? new Date().toISOString(),
-  );
-  const rawGenre = String(
-    item.selectedGenre ?? item.genre ?? item.style ?? "HEALING",
-  );
-  const style =
-    GENRE_TO_STYLE[rawGenre] ??
-    (rawGenre.toLowerCase().replace(/_/g, "-") as DreamStyle);
-  return {
-    id,
-    userId: String(item.userId ?? ""),
-    title: String(item.title ?? "제목 없음"),
-    content: String(item.content ?? ""),
-    recordedAt,
-    createdAt,
-    inputMethod: "text",
-    style,
-    format: "webtoon",
-    scenes: Array.isArray(item.scenes)
-      ? (item.scenes as DreamEntry["scenes"])
-      : [],
-    analysis: (item.analysis as DreamEntry["analysis"]) ?? {
-      emotions: {} as DreamEntry["analysis"]["emotions"],
-      tensionLevel: 0,
-      controlLevel: 0,
-      isNightmare: false,
-      repeatingSymbols: [],
-      relationshipPatterns: [],
-      hasResolution: false,
-    },
-    webtoonUrl: item.webtoonUrl
-      ? String(item.webtoonUrl)
-      : item.thumbnailUrl
-        ? String(item.thumbnailUrl)
-        : undefined,
-    videoUrl: item.videoUrl ? String(item.videoUrl) : undefined,
-    tags: Array.isArray(item.tags) ? (item.tags as string[]) : [],
-    genreName: item.genreName ? String(item.genreName) : undefined,
-    isFavorite: Boolean(item.isFavorite),
-    isInLibrary: true,
-  };
-}
-
-// Memoized Dream Card
-const DreamCard = memo(
-  ({ dream, onClick }: { dream: DreamEntry; onClick: () => void }) => {
-    return (
-      <motion.div
-        layout
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        whileHover={{ y: -5 }}
-        onClick={onClick}
-        className="glass-card overflow-hidden cursor-pointer group"
-      >
-        {/* Thumbnail */}
-        <div className="aspect-video bg-gradient-to-br from-[#2D2A4A] to-[#1A1638] relative overflow-hidden">
-          {dream.webtoonUrl ||
-          (dream.scenes &&
-            dream.scenes.length > 0 &&
-            dream.scenes[0].imageUrl) ? (
-            <img
-              src={dream.webtoonUrl || dream.scenes[0].imageUrl}
-              alt={dream.title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
-            />
-          ) : null}
-
-          {/* Overlay for text readability */}
-          <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors" />
-
-          <div className="absolute inset-0 flex items-center justify-center text-white p-4">
-            <div className="text-center">
-              <div className="text-lg font-semibold drop-shadow-md">
-                {dream.title}
-              </div>
-            </div>
-          </div>
-          {dream.isFavorite && (
-            <div className="absolute top-3 right-3 z-10">
-              <Heart className="w-6 h-6 fill-red-500 text-red-500 drop-shadow-md" />
-            </div>
-          )}
-        </div>
-
-        {/* Info */}
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-400 flex items-center">
-              <Calendar className="w-4 h-4 mr-1" />
-              {formatDateShort(dream.recordedAt)}
-            </span>
-            <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full">
-              {dream.genreName ?? STYLE_LABELS[dream.style] ?? dream.style}
-            </span>
-          </div>
-          <p className="text-sm text-gray-300 line-clamp-2">
-            {dream.content || "꿈 기록"}
-          </p>
-          {(dream.tags?.length ?? 0) > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {dream.tags.slice(0, 3).map((tag, i) => (
-                <span
-                  key={i}
-                  className="text-xs px-2 py-0.5 bg-white/10 text-gray-400 rounded"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      </motion.div>
-    );
-  },
-);
-
-DreamCard.displayName = "DreamCard";
+import { DreamCard } from "./LibraryPage/components/DreamCard";
+import { FilterBar } from "./LibraryPage/components/FilterBar";
+import { EmptyState } from "./LibraryPage/components/EmptyState";
+import {
+  getLocalFavoriteIds,
+  styleToGenre,
+  mapLibraryItemToDreamEntry,
+} from "./LibraryPage/utils";
 
 export default function LibraryPage() {
   const { dreams } = useDreamStore();
@@ -194,19 +27,9 @@ export default function LibraryPage() {
   const [libraryDreams, setLibraryDreams] = useState<DreamEntry[]>([]);
   const [filterStyle, setFilterStyle] = useState<DreamStyle | "all">("all");
   const [showFavorites, setShowFavorites] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  // localStorage 즐겨찾기 ID 목록 - 하트 토글 후 반응적으로 갱신
   const [localFavIds, setLocalFavIds] = useState<string[]>(getLocalFavoriteIds);
 
-  /** FE DreamStyle → BE Genre (UPPERCASE) 변환 */
-  const styleToGenre = (style: DreamStyle | "all"): string | undefined => {
-    if (style === "all") return undefined;
-    const entry = Object.entries(GENRE_TO_STYLE).find(([, v]) => v === style);
-    return entry?.[0]; // e.g. "HEALING"
-  };
-
-  // BE에서 라이브러리 목록 가져오기 (로그인 시에만, 필터 변경 시 재호출)
-  // 즐겨찾기 필터는 localStorage 기반으로 프론트엔드에서만 처리
+  // BE에서 라이브러리 목록 가져오기
   useEffect(() => {
     if (!isLoggedIn) {
       setLibraryDreams([]);
@@ -216,7 +39,6 @@ export default function LibraryPage() {
       try {
         const params: Record<string, unknown> = {};
         if (filterStyle !== "all") params.genre = styleToGenre(filterStyle);
-        // favorite 파라미터 제거: BE는 localStorage 즐겨찾기를 알 수 없음
         const result = await libraryAPI.getLibrary(params as any);
         const raw =
           result?.dreams ??
@@ -256,7 +78,6 @@ export default function LibraryPage() {
     if (selectedDream) {
       document.body.style.overflow = "hidden";
     } else {
-      // 모달 닫힐 때 localStorage에서 최신 즐겨찾기 목록 재읽기
       setLocalFavIds(getLocalFavoriteIds());
       document.body.style.overflow = "unset";
     }
@@ -265,22 +86,7 @@ export default function LibraryPage() {
     };
   }, [selectedDream]);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (isDropdownOpen && !target.closest(".relative")) {
-        setIsDropdownOpen(false);
-      }
-    };
-    if (isDropdownOpen) {
-      document.addEventListener("click", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, [isDropdownOpen]);
-
-  // 카드 클릭 시 상세 조회(4컷 scenes 포함) 후 모달 표시
+  // 카드 클릭 시 상세 조회
   useEffect(() => {
     if (!selectedDream) {
       setFullDreamDetail(null);
@@ -300,7 +106,6 @@ export default function LibraryPage() {
     };
   }, [selectedDream]);
 
-  // 미로그인 시 로그인 유도 화면
   if (!isLoggedIn) {
     return (
       <div className="min-h-full pt-20 pb-24 px-5 flex flex-col items-center justify-center bg-[#0F0C29]">
@@ -325,7 +130,6 @@ export default function LibraryPage() {
   return (
     <div className="min-h-full pt-20 pb-24 px-5 xl:pt-28 xl:px-8 relative overflow-y-auto scrollbar-hide">
       <div className="max-w-7xl mx-auto">
-        {/* ... (existing content) */}
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -341,86 +145,13 @@ export default function LibraryPage() {
         </motion.div>
 
         {/* Filters */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="flex flex-wrap items-center justify-end gap-3 mb-8 px-1"
-        >
-          <button
-            onClick={() => setShowFavorites(!showFavorites)}
-            className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-              showFavorites
-                ? "bg-red-500/20 text-red-400 border border-red-500/50"
-                : "glass-card text-gray-400 hover:bg-white/10"
-            }`}
-          >
-            <Heart
-              className={`w-4 h-4 ${showFavorites ? "fill-current" : ""}`}
-            />
-            즐겨찾기
-          </button>
+        <FilterBar
+          filterStyle={filterStyle}
+          showFavorites={showFavorites}
+          onFilterStyleChange={setFilterStyle}
+          onShowFavoritesChange={setShowFavorites}
+        />
 
-          <div className="relative">
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className={`w-40 pl-4 pr-4 py-2 rounded-lg font-medium transition-all cursor-pointer outline-none flex items-center justify-between ${
-                filterStyle !== "all"
-                  ? "bg-purple-500/20 text-purple-300 border border-purple-500/50"
-                  : "glass-card text-gray-400 hover:bg-white/10"
-              }`}
-            >
-              <span>
-                {filterStyle === "all"
-                  ? "모든 스타일"
-                  : (STYLE_LABELS[filterStyle] ?? filterStyle)}
-              </span>
-              <ChevronDown
-                className={`w-4 h-4 transition-transform ${
-                  isDropdownOpen ? "rotate-180" : ""
-                } ${
-                  filterStyle !== "all" ? "text-purple-300" : "text-white/60"
-                }`}
-              />
-            </button>
-
-            <AnimatePresence>
-              {isDropdownOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute top-full mt-2 w-40 glass-card rounded-lg overflow-hidden z-20 shadow-xl"
-                >
-                  {[
-                    { value: "all", label: "모든 스타일" },
-                    { value: "custom", label: "맞춤형" },
-                    { value: "ghibli", label: "지브리" },
-                    { value: "marvel", label: "마블" },
-                    { value: "lego", label: "레고" },
-                    { value: "animal-crossing", label: "모동숲" },
-                  ].map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        setFilterStyle(option.value as DreamStyle | "all");
-                        setIsDropdownOpen(false);
-                      }}
-                      className={`w-full px-4 py-2 text-left transition-colors ${
-                        filterStyle === option.value
-                          ? "bg-purple-500/20 text-purple-300"
-                          : "text-gray-400 hover:bg-white/10"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
         {/* Dream Count */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -433,18 +164,7 @@ export default function LibraryPage() {
 
         {/* Dream Grid */}
         {filteredDreams.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-12 text-center min-h-[200px] flex flex-col items-center justify-center"
-          >
-            <p className="text-lg font-medium text-gray-300">
-              기록된 꿈이 없습니다
-            </p>
-            <p className="text-sm text-gray-500 mt-2">
-              웹툰 결과에서 &#39;라이브러리에 저장&#39;을 누르면 여기에 쌓여요.
-            </p>
-          </motion.div>
+          <EmptyState />
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
@@ -465,7 +185,7 @@ export default function LibraryPage() {
         )}
       </div>
 
-      {/* Full Screen Generation Result Modal (4컷은 상세 조회 후 scenes로 표시) */}
+      {/* Full Screen Generation Result Modal */}
       <AnimatePresence>
         {selectedDream && (
           <motion.div
