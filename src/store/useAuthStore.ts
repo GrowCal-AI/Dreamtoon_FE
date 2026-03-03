@@ -12,6 +12,9 @@ interface AuthStore {
     // Actions
     login: () => Promise<void>
     testLogin: (userId?: number) => Promise<void>
+    emailLogin: (email: string) => Promise<void>
+    emailRegister: (email: string, password: string) => Promise<void>
+    emailSignin: (email: string, password: string) => Promise<void>
     logout: () => void
     fetchUser: () => Promise<void>
     refreshUsage: () => Promise<void>
@@ -61,6 +64,51 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
             await get().fetchUser()
         } catch (error) {
             console.error('Test login failed:', error)
+        } finally {
+            set({ isLoading: false })
+        }
+    },
+
+    // 이메일 로그인
+    emailLogin: async (email: string) => {
+        try {
+            set({ isLoading: true })
+            await authAPI.emailLogin(email)
+            set({ isLoggedIn: true })
+            await get().fetchUser()
+        } catch (error) {
+            console.error('Email login failed:', error)
+            throw error
+        } finally {
+            set({ isLoading: false })
+        }
+    },
+
+    // 이메일 회원가입
+    emailRegister: async (email: string, password: string) => {
+        try {
+            set({ isLoading: true })
+            await authAPI.emailRegister(email, password)
+            set({ isLoggedIn: true })
+            await get().fetchUser()
+        } catch (error) {
+            console.error('Email register failed:', error)
+            throw error
+        } finally {
+            set({ isLoading: false })
+        }
+    },
+
+    // 이메일 로그인 (비밀번호)
+    emailSignin: async (email: string, password: string) => {
+        try {
+            set({ isLoading: true })
+            await authAPI.emailSignin(email, password)
+            set({ isLoggedIn: true })
+            await get().fetchUser()
+        } catch (error) {
+            console.error('Email signin failed:', error)
+            throw error
         } finally {
             set({ isLoading: false })
         }

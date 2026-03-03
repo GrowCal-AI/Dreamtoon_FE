@@ -12,6 +12,35 @@ export const authAPI = {
     return data
   },
 
+  emailLogin: async (email: string) => {
+    const { data } = await apiClient.post<{ accessToken: string; refreshToken: string }>(
+      `/auth/email-login?email=${encodeURIComponent(email)}`
+    )
+    localStorage.setItem('accessToken', data.accessToken)
+    localStorage.setItem('refreshToken', data.refreshToken)
+    return data
+  },
+
+  emailRegister: async (email: string, password: string) => {
+    const { data } = await apiClient.post<{ accessToken: string; refreshToken: string }>(
+      '/auth/email-register',
+      { email, password }
+    )
+    localStorage.setItem('accessToken', data.accessToken)
+    localStorage.setItem('refreshToken', data.refreshToken)
+    return data
+  },
+
+  emailSignin: async (email: string, password: string) => {
+    const { data } = await apiClient.post<{ accessToken: string; refreshToken: string }>(
+      '/auth/email-signin',
+      { email, password }
+    )
+    localStorage.setItem('accessToken', data.accessToken)
+    localStorage.setItem('refreshToken', data.refreshToken)
+    return data
+  },
+
   /** Refresh Token은 HttpOnly Cookie로 전달됨. credentials 포함해 호출하면 됨. */
   refresh: async () => {
     const { data } = await apiClient.post('/auth/refresh', {})
