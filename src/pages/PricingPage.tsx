@@ -332,15 +332,45 @@ export default function PricingPage({
       </div>
 
       {/* 안내 문구 */}
-      <motion.p
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
-        className="text-center text-gray-500 text-xs mt-10"
+        className="text-center mt-10 space-y-3"
       >
-        결제는 Polar를 통해 안전하게 처리됩니다 · 구독 취소는 언제든지
-        가능합니다
-      </motion.p>
+        <p className="text-gray-500 text-xs">
+          결제는 Polar를 통해 안전하게 처리됩니다 · 구독 취소는 언제든지
+          가능합니다
+        </p>
+        <div className="flex items-center justify-center gap-4 text-xs text-gray-600">
+          <a
+            href="/terms-of-service"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-purple-400 transition-colors underline"
+          >
+            서비스 이용약관
+          </a>
+          <span>·</span>
+          <a
+            href="/refund-policy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-purple-400 transition-colors underline"
+          >
+            환불 정책
+          </a>
+          <span>·</span>
+          <a
+            href="/privacy-policy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-purple-400 transition-colors underline"
+          >
+            개인정보 처리방침
+          </a>
+        </div>
+      </motion.div>
     </div>
   );
 
