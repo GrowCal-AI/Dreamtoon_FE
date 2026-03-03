@@ -19,8 +19,12 @@ export default defineConfig({
         manualChunks: (id) => {
           // Node modules vendor splitting
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'react-vendor';
+            // React와 React-DOM은 항상 함께 번들링되어야 함 (중요!)
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'vendor';
+            }
+            if (id.includes('react-router')) {
+              return 'vendor';
             }
             if (id.includes('framer-motion')) {
               return 'animation';
@@ -45,14 +49,7 @@ export default defineConfig({
             return 'feature-components';
           }
 
-          // Pages chunk (lazy loaded pages will be separate)
-          if (id.includes('/src/pages/')) {
-            // Extract page name for dynamic chunks
-            const match = id.match(/\/pages\/([^/]+)/);
-            if (match) {
-              return `page-${match[1].toLowerCase().replace('.tsx', '')}`;
-            }
-          }
+          // Pages는 lazy loading으로 자동 분할되므로 수동 청크 불필요
         },
       },
     },
