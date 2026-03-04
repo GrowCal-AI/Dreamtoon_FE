@@ -15,6 +15,8 @@ const PricingPage = lazy(() => import("./pages/PricingPage"));
 const PaymentSuccessPage = lazy(() => import("./pages/PaymentSuccessPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const OAuthCallbackPage = lazy(() => import("./pages/OAuthCallbackPage"));
+const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
+const TermsOfServicePage = lazy(() => import("./pages/TermsOfServicePage"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -41,6 +43,8 @@ function App() {
           <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
           <Route path="/payment/success" element={<PaymentSuccessPage />} />
           <Route path="/payment/cancel" element={<PaymentSuccessPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms-of-service" element={<TermsOfServicePage />} />
           {/* 꿈 대화 채팅 페이지 (레이아웃 없이 풀스크린) */}
           <Route path="/dream-chat" element={<DreamChatPage />} />
           <Route element={<Layout />}>

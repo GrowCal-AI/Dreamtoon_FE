@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import Header from '@/components/common/Header'
 import BottomNavigation from './BottomNavigation'
+import Footer from './Footer'
 
 export default function Layout() {
   const location = useLocation()
@@ -23,6 +24,9 @@ export default function Layout() {
       <div className="flex xl:hidden w-full flex-col">
         <BottomNavigation />
       </div>
+
+      {/* Footer - Visible on all screens */}
+      <Footer />
     </div>
   )
 }

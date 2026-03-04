@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Check, Sparkles, X, Loader2 } from "lucide-react";
+import { Check, Sparkles, X, Loader2, Settings } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { subscriptionAPI } from "@/services/api";
 import { AxiosError } from "axios";
@@ -112,6 +112,7 @@ export default function PricingPage({
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   const currentTier = (user?.subscriptionTier?.toUpperCase() ?? "FREE") as Tier;
+  const isPaidTier = currentTier !== "FREE";
 
   const handleSelectPlan = async (plan: Plan) => {
     // 무료 플랜은 결제 불필요
@@ -330,6 +331,35 @@ export default function PricingPage({
           );
         })}
       </div>
+
+      {/* 구독 관리 버튼 (유료 사용자만 표시) */}
+      {isPaidTier && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="max-w-2xl mx-auto mt-8 text-center"
+        >
+          <button
+            onClick={async () => {
+              try {
+                const result = await subscriptionAPI.getPortalUrl();
+                window.location.href = result.portalUrl;
+              } catch (error) {
+                console.error("Portal URL 조회 실패:", error);
+                alert("구독 관리 페이지를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.");
+              }
+            }}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <Settings size={18} />
+            <span className="font-medium">구독 관리 (취소/변경)</span>
+          </button>
+          <p className="text-gray-500 text-xs mt-3">
+            Polar 구독 관리 페이지에서 구독 취소, 플랜 변경, 결제 수단 변경이 가능합니다
+          </p>
+        </motion.div>
+      )}
 
       {/* 안내 문구 */}
       <motion.p

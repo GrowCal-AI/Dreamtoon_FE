@@ -60,4 +60,20 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- Privacy Policy (Required for AdSense) -->
+  <url>
+    <loc>https://dreamics.ai/privacy-policy</loc>
+    <lastmod>2026-03-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- Terms of Service (Required for AdSense) -->
+  <url>
+    <loc>https://dreamics.ai/terms-of-service</loc>
+    <lastmod>2026-03-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
 </urlset>
