@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Mic, Send, Loader2, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import PricingPage from "@/pages/PricingPage";
 import GenerationResult from "@/components/common/GenerationResult";
 import { EmotionChip, AnalysisDashboard, StyleCard } from "@/components/features/dream";
 import { SubscriptionPrompt } from "@/pages/DreamInputPage/components/SubscriptionPrompt";
 import { STANDARD_FILTERS, PREMIUM_FILTERS, EMOTION_MAP, EMOTION_REACTIONS } from "@/pages/DreamInputPage/constants";
+import UpgradePlanModal from "@/components/common/UpgradePlanModal";
 
 import { useChatStore } from "@/store/useChatStore";
 import { useDreamStore } from "@/store/useDreamStore";
@@ -14,11 +16,11 @@ import { useAuthStore } from "@/store/useAuthStore";
 import LoginModal from "@/components/common/LoginModal";
 import { EmotionType, DreamStyle } from "@/types";
 import { dreamAPI } from "@/services/api";
-import { trialTracker } from "@/utils/trialTracker";
 
 // --- Main Page ---
 
 export default function DreamInputPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -28,6 +30,8 @@ export default function DreamInputPage() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"style" | "deep_chat">("style");
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeErrorType, setUpgradeErrorType] = useState<'USAGE_LIMIT' | 'PERMISSION_DENIED' | 'SUBSCRIPTION_REQUIRED'>('USAGE_LIMIT');
 
   // State for pending save actions
   const [pendingSave, setPendingSave] = useState(false);
@@ -185,7 +189,7 @@ export default function DreamInputPage() {
 
     const questions = [
       "꿈을 말씀해 주세요.",
-      "감정을 말씀해 주세요. 기쁨, 불안, 분노, 슬픔, 놀람, 평온 중 하나요.",
+      t("dreamInput.emotionQuestion"),
       "더 자세히 이야기해 주세요.",
       "현실 고민이 있으신가요? 없으면 없다고 해주세요.",
     ];
@@ -254,27 +258,8 @@ export default function DreamInputPage() {
   };
   handleVoiceFlowResultRef.current = handleVoiceFlowResult;
 
-  // 페이지 접근 권한 체크
-  useEffect(() => {
-    const isTrial = (location.state as any)?.isTrial || false;
-
-    const checkAccess = async () => {
-      // 로그인 사용자는 항상 허용
-      if (isLoggedIn) return;
-
-      // 비로그인 + 체험 모드 허용
-      if (isTrial) return;
-
-      // 비로그인 + 체험 모드 아님 → 체험 가능 횟수 체크
-      const canTrial = await trialTracker.canTrial();
-      if (!canTrial) {
-        // 체험 불가능하면 홈으로 리다이렉트
-        navigate('/', { replace: true });
-      }
-    };
-
-    checkAccess();
-  }, [isLoggedIn, location.state, navigate]);
+  // 페이지 접근 권한 체크 제거 - 비로그인 사용자도 자유롭게 접근 가능
+  // API 호출 시 에러 처리로 사용량 제한 관리
 
   // Initial Greeting and handle initial message from HomePage
   useEffect(() => {
@@ -296,15 +281,14 @@ export default function DreamInputPage() {
           addMessage({ role: "user", content: initialMessage, type: "text" });
           addMessage({
             role: "ai",
-            content: `"${initialMessage}" 꿈에서 느낀 감정을 선택해주세요.`,
+            content: `"${initialMessage}${t("dreamInput.emotionSelect")}`,
             type: "text",
           });
           setStep(1);
         } else {
           addMessage({
             role: "ai",
-            content:
-              "안녕하세요! 어젯밤 꾸셨던 꿈은 어떠셨나요? 가장 먼저 떠오르는 감정을 알려주세요.",
+            content: t("dreamInput.pleaseTellDream"),
             type: "text",
           });
           setStep(1);
@@ -317,7 +301,7 @@ export default function DreamInputPage() {
     selectEmotion(emotion);
     addMessage({
       role: "user",
-      content: getEmotionLabel(emotion),
+      content: getEmotionLabel(emotion, t),
       type: "text",
     });
 
@@ -449,24 +433,49 @@ export default function DreamInputPage() {
       console.error("Dream analysis failed:", error);
       setIsAnalyzing(false);
 
-      const errCode = error?.response?.data?.code;
-      const errStatus = error?.response?.status;
+      // API 에러 분석: 사용량 초과, 권한 부족, 구독 필요 등
+      const errorMessage = error?.response?.data?.message || error?.message || "";
+      const errorCode = error?.response?.data?.code || error?.response?.data?.error || "";
+      const statusCode = error?.response?.status;
 
-      if (errCode === "GENERATION_LIMIT_EXCEEDED" || errStatus === 429) {
-        addMessage({
-          role: "ai",
-          content:
-            "이번 달 꿈 생성 횟수를 모두 사용했어요. 더 많은 꿈을 기록하려면 구독 플랜을 업그레이드해 보세요!",
-          type: "text",
-        });
-        setShowPremiumModal(true);
-        setModalType("style");
+      // 사용량 초과 또는 권한 관련 에러 감지
+      const isUsageLimitError =
+        statusCode === 429 ||
+        errorCode === "GENERATION_LIMIT_EXCEEDED" ||
+        errorMessage.includes("사용량") ||
+        errorMessage.includes("usage") ||
+        errorMessage.includes("limit") ||
+        errorMessage.includes("횟수");
+
+      const isPermissionError =
+        statusCode === 403 ||
+        errorMessage.includes("권한") ||
+        errorMessage.includes("permission") ||
+        errorMessage.includes("프리미엄") ||
+        errorCode === "PERMISSION_DENIED";
+
+      const isSubscriptionError =
+        errorMessage.includes("구독") ||
+        errorMessage.includes("subscription") ||
+        errorCode === "SUBSCRIPTION_REQUIRED";
+
+      if (isUsageLimitError || isPermissionError || isSubscriptionError) {
+        // 플랜 업그레이드 모달 표시
+        if (isUsageLimitError) {
+          setUpgradeErrorType('USAGE_LIMIT');
+        } else if (isPermissionError) {
+          setUpgradeErrorType('PERMISSION_DENIED');
+        } else {
+          setUpgradeErrorType('SUBSCRIPTION_REQUIRED');
+        }
+        setShowUpgradeModal(true);
       } else {
-        addMessage({
-          role: "ai",
-          content: "분석 중 오류가 발생했습니다. 다시 시도해주세요.",
-          type: "text",
-        });
+        // 일반 에러 (네트워크, 서버 500 등)
+        console.log("General error details:", { statusCode, errorCode, errorMessage });
+
+        // 네트워크 에러나 서버 에러일 가능성이 높으므로 사용량 제한으로 간주
+        setUpgradeErrorType('USAGE_LIMIT');
+        setShowUpgradeModal(true);
       }
       setStep(3);
     }
@@ -541,22 +550,50 @@ export default function DreamInputPage() {
       console.error("Webtoon generation failed:", error);
       setIsGenerating(false);
 
-      const errCode = error?.response?.data?.code;
-      if (errCode === "PREMIUM_STYLE_NOT_ALLOWED") {
-        addMessage({
-          role: "ai",
-          content:
-            "프리미엄 스타일은 유료 구독자만 사용할 수 있어요. 구독 플랜을 확인해 보세요!",
-          type: "text",
-        });
-        setShowPremiumModal(true);
-        setModalType("style");
+      // API 에러 분석: 사용량 초과, 권한 부족, 구독 필요 등
+      const errorMessage = error?.response?.data?.message || error?.message || "";
+      const errorCode = error?.response?.data?.code || error?.response?.data?.error || "";
+      const statusCode = error?.response?.status;
+
+      // 사용량 초과 또는 권한 관련 에러 감지
+      const isUsageLimitError =
+        statusCode === 429 ||
+        errorCode === "GENERATION_LIMIT_EXCEEDED" ||
+        errorMessage.includes("사용량") ||
+        errorMessage.includes("usage") ||
+        errorMessage.includes("limit") ||
+        errorMessage.includes("횟수");
+
+      const isPermissionError =
+        statusCode === 403 ||
+        errorCode === "PREMIUM_STYLE_NOT_ALLOWED" ||
+        errorMessage.includes("권한") ||
+        errorMessage.includes("permission") ||
+        errorMessage.includes("프리미엄") ||
+        errorCode === "PERMISSION_DENIED";
+
+      const isSubscriptionError =
+        errorMessage.includes("구독") ||
+        errorMessage.includes("subscription") ||
+        errorCode === "SUBSCRIPTION_REQUIRED";
+
+      if (isUsageLimitError || isPermissionError || isSubscriptionError) {
+        // 플랜 업그레이드 모달 표시
+        if (isUsageLimitError) {
+          setUpgradeErrorType('USAGE_LIMIT');
+        } else if (isPermissionError) {
+          setUpgradeErrorType('PERMISSION_DENIED');
+        } else {
+          setUpgradeErrorType('SUBSCRIPTION_REQUIRED');
+        }
+        setShowUpgradeModal(true);
       } else {
-        addMessage({
-          role: "ai",
-          content: "웹툰 생성 중 오류가 발생했습니다. 다시 시도해주세요.",
-          type: "text",
-        });
+        // 일반 에러 (네트워크, 서버 500 등)
+        console.log("Webtoon generation error details:", { statusCode, errorCode, errorMessage });
+
+        // 네트워크 에러나 서버 에러일 가능성이 높으므로 사용량 제한으로 간주
+        setUpgradeErrorType('USAGE_LIMIT');
+        setShowUpgradeModal(true);
       }
       setStep(5);
     }
@@ -880,37 +917,37 @@ export default function DreamInputPage() {
           >
             <EmotionChip
               emotion="joy"
-              label="기쁨"
+              label={t("emotions.joy")}
               emoji="😊"
               onClick={() => handleEmotionClick("joy")}
             />
             <EmotionChip
               emotion="anxiety"
-              label="불안"
+              label={t("emotions.anxiety")}
               emoji="😰"
               onClick={() => handleEmotionClick("anxiety")}
             />
             <EmotionChip
               emotion="anger"
-              label="분노"
+              label={t("emotions.anger")}
               emoji="😠"
               onClick={() => handleEmotionClick("anger")}
             />
             <EmotionChip
               emotion="sadness"
-              label="슬픔"
+              label={t("emotions.sadness")}
               emoji="😢"
               onClick={() => handleEmotionClick("sadness")}
             />
             <EmotionChip
               emotion="surprise"
-              label="놀람"
+              label={t("emotions.surprise")}
               emoji="😲"
               onClick={() => handleEmotionClick("surprise")}
             />
             <EmotionChip
               emotion="peace"
-              label="평온"
+              label={t("emotions.calm")}
               emoji="😌"
               onClick={() => handleEmotionClick("peace")}
             />
@@ -1147,6 +1184,13 @@ export default function DreamInputPage() {
         )}
       </div>
 
+      {/* Upgrade Plan Modal */}
+      <UpgradePlanModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        errorType={upgradeErrorType}
+      />
+
       {/* PricingPage 모달 */}
       <AnimatePresence>
         {isPricingModalOpen && (
@@ -1158,14 +1202,14 @@ export default function DreamInputPage() {
 }
 
 // Helpers
-const getEmotionLabel = (e: EmotionType) => {
+const getEmotionLabel = (e: EmotionType, t: any) => {
   const labels: Record<EmotionType, string> = {
-    joy: "기뻤어",
-    anxiety: "불안했어",
-    anger: "화났어",
-    sadness: "슬펐어",
-    surprise: "놀랐어",
-    peace: "평온했어",
+    joy: t("emotions.joyPast"),
+    anxiety: t("emotions.anxietyPast"),
+    anger: t("emotions.angerPast"),
+    sadness: t("emotions.sadnessPast"),
+    surprise: t("emotions.surprisePast"),
+    peace: t("emotions.calmPast"),
   };
   return labels[e] || e;
 };

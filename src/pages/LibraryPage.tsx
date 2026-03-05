@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { LogIn, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useDreamStore } from "@/store/useDreamStore";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -108,26 +108,8 @@ export default function LibraryPage() {
     };
   }, [selectedDream]);
 
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-full pt-20 pb-24 px-5 flex flex-col items-center justify-center bg-[#0F0C29]">
-        <div className="text-center max-w-sm space-y-6">
-          <p className="text-gray-400 text-lg">{t('library.loginRequired')}</p>
-          <p className="text-gray-500 text-sm">
-            {t('library.loginDescription')}
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate("/login")}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold hover:opacity-90 transition-opacity"
-          >
-            <LogIn className="w-5 h-5" />
-            {t('library.loginButton')}
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // 로그인 체크 제거 - 비로그인 사용자도 자유롭게 접근 가능
+  // 비로그인 시 빈 목록 표시
 
   return (
     <div className="min-h-full pt-20 pb-24 px-5 xl:pt-28 xl:px-8 relative overflow-y-auto scrollbar-hide">

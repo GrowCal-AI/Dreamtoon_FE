@@ -112,6 +112,59 @@
     "weeklyHeatmap": "每周梦境热图",
     "coaching": "AI辅导"
   },
+  "loginModal": {
+    "title": {
+      "email": "您珍贵的潜意识",
+      "emailHighlight": "永久保存吗?",
+      "register": "注册",
+      "signin": "登录"
+    },
+    "description": {
+      "email": "登录后保存到您的个人梦境库。",
+      "register": "请设置密码。",
+      "signin": "请输入密码。"
+    },
+    "benefits": {
+      "saveDreams": "可保存梦境",
+      "monthlyAnalysis": "月度情绪分析",
+      "premiumAccess": "高级咨询访问",
+      "hdDownload": "高清漫画下载",
+      "firstLoginCoupon": "首次登录赠送高级优惠券"
+    },
+    "placeholder": {
+      "email": "请输入邮箱",
+      "password": "请输入密码（8位以上）",
+      "confirmPassword": "请再次输入密码"
+    },
+    "button": {
+      "emailStart": "使用邮箱开始",
+      "loggingIn": "登录中...",
+      "kakaoLogin": "使用Kakao登录",
+      "register": "完成注册",
+      "signin": "登录"
+    },
+    "divider": "或",
+    "error": {
+      "emailRequired": "请输入邮箱。",
+      "invalidEmail": "邮箱格式不正确。",
+      "passwordRequired": "请输入密码。",
+      "passwordTooShort": "密码必须至少8位。",
+      "passwordMismatch": "密码不匹配。",
+      "alreadyRegistered": "该邮箱已注册。请使用密码登录。",
+      "failed": "失败。请重试。"
+    }
+  },
+  "chat": {
+    "greeting": "让我们更深入地谈谈「{{dreamTitle}}」吧。\n\n您的梦中有什么印象深刻的场景或情感吗？请随意分享。让我们一起解读您潜意识的语言。",
+    "defaultTitle": "我的梦",
+    "aiAssistant": "梦境解析AI",
+    "placeholder": "请告诉我您的梦...",
+    "thinking": "思考中...",
+    "error": {
+      "noDreamId": "未找到梦境信息。请从图书馆选择梦境后重试。",
+      "general": "发生错误。请重试。"
+    }
+  },
   "common": {
     "loading": "加载中...",
     "error": "发生错误",
@@ -129,7 +182,18 @@
     "anger": "愤怒",
     "sadness": "悲伤",
     "surprise": "惊讶",
-    "calm": "平静"
+    "calm": "平静",
+    "joyPast": "感到喜悦",
+    "anxietyPast": "感到焦虑",
+    "angerPast": "感到愤怒",
+    "sadnessPast": "感到悲伤",
+    "surprisePast": "感到惊讶",
+    "calmPast": "感到平静"
+  },
+  "dreamInput": {
+    "emotionQuestion": "请告诉我您的感受。喜悦、焦虑、愤怒、悲伤、惊讶或平静中的一种？",
+    "emotionSelect": "\" 请选择您在梦中感受到的情绪。",
+    "pleaseTellDream": "请告诉我您的梦。"
   },
   "genres": {
     "fantasy": "奇幻",

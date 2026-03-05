@@ -122,6 +122,59 @@
     "errorMessage": "Failed to load data",
     "retryButton": "Retry"
   },
+  "loginModal": {
+    "title": {
+      "email": "Preserve your precious",
+      "emailHighlight": "subconsciousness forever?",
+      "register": "Sign Up",
+      "signin": "Sign In"
+    },
+    "description": {
+      "email": "Sign in to save your dreams in your personal vault.",
+      "register": "Please set your password.",
+      "signin": "Please enter your password."
+    },
+    "benefits": {
+      "saveDreams": "Save Dreams",
+      "monthlyAnalysis": "Monthly Emotion Analysis",
+      "premiumAccess": "Premium Consultation Access",
+      "hdDownload": "HD Webtoon Download",
+      "firstLoginCoupon": "Premium Coupon for First Login"
+    },
+    "placeholder": {
+      "email": "Enter your email",
+      "password": "Enter password (8+ characters)",
+      "confirmPassword": "Re-enter password"
+    },
+    "button": {
+      "emailStart": "Start with Email",
+      "loggingIn": "Signing in...",
+      "kakaoLogin": "Sign in with Kakao",
+      "register": "Complete Sign Up",
+      "signin": "Sign In"
+    },
+    "divider": "or",
+    "error": {
+      "emailRequired": "Please enter your email.",
+      "invalidEmail": "Invalid email format.",
+      "passwordRequired": "Please enter your password.",
+      "passwordTooShort": "Password must be at least 8 characters.",
+      "passwordMismatch": "Passwords do not match.",
+      "alreadyRegistered": "This email is already registered. Please sign in with your password.",
+      "failed": "Failed. Please try again."
+    }
+  },
+  "chat": {
+    "greeting": "Let's talk more deeply about \"{{dreamTitle}}\".\n\nWas there any impressive scene or emotion in your dream? Feel free to share. Let's interpret the language of your subconscious together.",
+    "defaultTitle": "My Dream",
+    "aiAssistant": "Dream Interpretation AI",
+    "placeholder": "Tell me about your dream...",
+    "thinking": "Thinking...",
+    "error": {
+      "noDreamId": "Dream information not found. Please select a dream from the library and try again.",
+      "general": "An error occurred. Please try again."
+    }
+  },
   "common": {
     "loading": "Loading...",
     "error": "An error occurred",
@@ -139,7 +192,18 @@
     "anger": "Anger",
     "sadness": "Sadness",
     "surprise": "Surprise",
-    "calm": "Calm"
+    "calm": "Calm",
+    "joyPast": "Felt joyful",
+    "anxietyPast": "Felt anxious",
+    "angerPast": "Felt angry",
+    "sadnessPast": "Felt sad",
+    "surprisePast": "Felt surprised",
+    "calmPast": "Felt calm"
+  },
+  "dreamInput": {
+    "emotionQuestion": "Please tell me your emotion. Joy, Anxiety, Anger, Sadness, Surprise, or Calm?",
+    "emotionSelect": "\" Please select the emotion you felt in your dream.",
+    "pleaseTellDream": "Please tell me about your dream."
   },
   "genres": {
     "fantasy": "Fantasy",

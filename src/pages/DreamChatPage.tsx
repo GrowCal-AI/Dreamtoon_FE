@@ -2,9 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Send, Mic, ArrowLeft, Sparkles, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { dreamAPI } from "@/services/api";
-import { useAuthStore } from "@/store/useAuthStore";
-import { trialTracker } from "@/utils/trialTracker";
 import UpgradePlanModal from "@/components/common/UpgradePlanModal";
 
 // ─── 타입 ───────────────────────────────────────────────────────────────────
@@ -16,30 +15,28 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-// ─── 초기 AI 인사 메시지 ─────────────────────────────────────────────────
-
-const getGreeting = (dreamTitle: string): ChatMessage => ({
-  id: "init-0",
-  role: "ai",
-  content: `"${dreamTitle}"에 대해 더 깊이 이야기해 볼까요?\n\n꿈 속에서 가장 인상 깊었던 장면이나 감정이 있으셨나요? 편하게 말씀해 주세요. 무의식의 언어를 함께 해석해 드릴게요.`,
-  timestamp: new Date(),
-});
-
 // ─── 컴포넌트 ──────────────────────────────────────────────────────────────
 
 export default function DreamChatPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isLoggedIn } = useAuthStore();
+  const { t, i18n } = useTranslation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // location.state로 dreamId, dreamTitle, initialMessage, isTrial 전달받음
+  // location.state로 dreamId, dreamTitle, initialMessage 전달받음
   const dreamId: string | undefined = (location.state as any)?.dreamId;
-  const dreamTitle: string = (location.state as any)?.dreamTitle || "나의 꿈";
+  const dreamTitle: string = (location.state as any)?.dreamTitle || t("chat.defaultTitle");
   const initialMessage: string | undefined = (location.state as any)
     ?.initialMessage;
-  const isTrial: boolean = (location.state as any)?.isTrial || false;
+
+  // 초기 AI 인사 메시지 (다국어)
+  const getGreeting = (dreamTitle: string): ChatMessage => ({
+    id: "init-0",
+    role: "ai",
+    content: t("chat.greeting", { dreamTitle }),
+    timestamp: new Date(),
+  });
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     const greeting = getGreeting(dreamTitle);
@@ -65,25 +62,20 @@ export default function DreamChatPage() {
   const recognitionRef = useRef<any>(null);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 페이지 접근 권한 체크
+  // 페이지 접근 권한 체크 제거 - 비로그인 사용자도 자유롭게 접근 가능
+  // API 호출 시 에러 처리로 사용량 제한 관리
+
+  // 언어 변경 시 첫 메시지(greeting) 업데이트
   useEffect(() => {
-    const checkAccess = async () => {
-      // 로그인 사용자는 항상 허용
-      if (isLoggedIn) return;
-
-      // 비로그인 + 체험 모드 허용
-      if (isTrial) return;
-
-      // 비로그인 + 체험 모드 아님 → 체험 가능 횟수 체크
-      const canTrial = await trialTracker.canTrial();
-      if (!canTrial) {
-        // 체험 불가능하면 홈으로 리다이렉트
-        navigate('/', { replace: true });
+    setMessages((prev) => {
+      // 첫 메시지만 업데이트 (id가 "init-0"인 greeting 메시지)
+      if (prev.length > 0 && prev[0].id === "init-0") {
+        const updatedGreeting = getGreeting(dreamTitle);
+        return [updatedGreeting, ...prev.slice(1)];
       }
-    };
-
-    checkAccess();
-  }, [isLoggedIn, isTrial, navigate]);
+      return prev;
+    });
+  }, [i18n.language]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 채팅 히스토리 로드 (기존 대화 복원)
   useEffect(() => {
@@ -131,7 +123,7 @@ export default function DreamChatPage() {
       setMessages((prev) => [...prev, {
         id: `err-${Date.now()}`,
         role: "ai",
-        content: "꿈 정보를 찾을 수 없어요. 라이브러리에서 꿈을 선택한 뒤 다시 시도해 주세요.",
+        content: t("chat.error.noDreamId"),
         timestamp: new Date(),
       }]);
       return;
@@ -188,7 +180,7 @@ export default function DreamChatPage() {
         const errMsg: ChatMessage = {
           id: `err-${Date.now()}`,
           role: "ai",
-          content: "잠시 오류가 발생했어요. 다시 시도해 주세요.",
+          content: t("chat.error.general"),
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, errMsg]);
@@ -303,7 +295,7 @@ export default function DreamChatPage() {
             <p className="text-sm font-bold text-white truncate">
               {dreamTitle}
             </p>
-            <p className="text-xs text-purple-400">꿈 해석 AI</p>
+            <p className="text-xs text-purple-400">{t("chat.aiAssistant")}</p>
           </div>
         </div>
       </div>
@@ -362,7 +354,7 @@ export default function DreamChatPage() {
               </div>
               <div className="px-4 py-3 rounded-2xl rounded-tl-none bg-white/8 border border-white/10 flex items-center gap-1.5">
                 <Loader2 size={13} className="animate-spin text-purple-400" />
-                <span className="text-xs text-gray-400">생각하는 중...</span>
+                <span className="text-xs text-gray-400">{t("chat.thinking")}</span>
               </div>
             </motion.div>
           )}
@@ -399,7 +391,7 @@ export default function DreamChatPage() {
                 sendMessage(inputText);
               }
             }}
-            placeholder="꿈에 대해 이야기해 주세요..."
+            placeholder={t("chat.placeholder")}
             className="flex-1 bg-transparent border-none outline-none text-white placeholder-gray-500 text-sm px-2"
             disabled={isLoading}
           />

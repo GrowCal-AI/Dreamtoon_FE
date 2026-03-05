@@ -1,13 +1,10 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Mic, Send } from "lucide-react";
 import Particles from "@/components/common/Particles";
 import { staggerContainer, staggerItem } from "@/utils/animations";
 import { useTranslation } from "react-i18next";
-import { useAuthStore } from "@/store/useAuthStore";
-import { trialTracker } from "@/utils/trialTracker";
-import LoginModal from "@/components/common/LoginModal";
 
 // Isolated Input Component to prevent re-renders
 const DreamInput = ({
@@ -78,45 +75,15 @@ const DreamInput = ({
 export default function HomePage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isLoggedIn } = useAuthStore();
-  const [showLoginModal, setShowLoginModal] = useState(false);
 
-  const handleDreamInput = async (text: string) => {
-    // 로그인 사용자는 바로 진행
-    if (isLoggedIn) {
-      navigate("/chat", { state: { initialMessage: text } });
-      return;
-    }
-
-    // 비로그인 사용자: 체험 횟수 체크
-    const canTrial = await trialTracker.canTrial();
-    if (canTrial) {
-      // 1회 무료 체험 가능
-      await trialTracker.recordTrial();
-      navigate("/chat", { state: { initialMessage: text, isTrial: true } });
-    } else {
-      // 2회째 시도 → 로그인 모달 띄우기
-      setShowLoginModal(true);
-    }
+  const handleDreamInput = (text: string) => {
+    // 로그인 여부와 상관없이 모두 /chat으로 이동
+    navigate("/chat", { state: { initialMessage: text } });
   };
 
-  const handleVoiceMode = async () => {
-    // 로그인 사용자는 바로 진행
-    if (isLoggedIn) {
-      navigate("/chat", { state: { voiceMode: true } });
-      return;
-    }
-
-    // 비로그인 사용자: 체험 횟수 체크
-    const canTrial = await trialTracker.canTrial();
-    if (canTrial) {
-      // 1회 무료 체험 가능
-      await trialTracker.recordTrial();
-      navigate("/chat", { state: { voiceMode: true, isTrial: true } });
-    } else {
-      // 2회째 시도 → 로그인 모달 띄우기
-      setShowLoginModal(true);
-    }
+  const handleVoiceMode = () => {
+    // 로그인 여부와 상관없이 모두 /chat으로 이동
+    navigate("/chat", { state: { voiceMode: true } });
   };
 
   return (
@@ -165,17 +132,6 @@ export default function HomePage() {
           onVoiceMode={handleVoiceMode}
         />
       </motion.div>
-
-      {/* 로그인 모달 */}
-      <AnimatePresence>
-        {showLoginModal && (
-          <LoginModal
-            onClose={() => setShowLoginModal(false)}
-            message="무료 체험은 1회만 가능합니다"
-            redirectTo="/chat"
-          />
-        )}
-      </AnimatePresence>
     </>
   );
 }

@@ -76,57 +76,35 @@ export default function Header() {
 
           {/* Desktop Navigation (Hidden on Mobile) */}
           <div className="hidden md:flex items-center space-x-6">
-            {/* Library: 로그인 시 링크, 미로그인 시 로그인 유도 */}
-            {isLoggedIn ? (
-              <Link
-                to="/library"
-                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all ${
-                  isActive("/library")
-                    ? "bg-purple-500/20 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
-                    : "hover:bg-white/10 text-gray-400 hover:text-white"
-                }`}
-              >
-                <Library
-                  className={`w-5 h-5 ${isActive("/library") ? "text-purple-400" : ""}`}
-                />
-                <span className="font-medium">{t('header.library')}</span>
-              </Link>
-            ) : (
-              <button
-                type="button"
-                onClick={handleLogin}
-                className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-all hover:bg-white/10 text-gray-400 hover:text-white"
-              >
-                <Library className="w-5 h-5" />
-                <span className="font-medium">{t('header.library')}</span>
-              </button>
-            )}
+            {/* Library: 로그인 여부와 상관없이 모두 접근 가능 */}
+            <Link
+              to="/library"
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all ${
+                isActive("/library")
+                  ? "bg-purple-500/20 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                  : "hover:bg-white/10 text-gray-400 hover:text-white"
+              }`}
+            >
+              <Library
+                className={`w-5 h-5 ${isActive("/library") ? "text-purple-400" : ""}`}
+              />
+              <span className="font-medium">{t('header.library')}</span>
+            </Link>
 
-            {/* 분석: 로그인 시 링크, 미로그인 시 로그인 유도 */}
-            {isLoggedIn ? (
-              <Link
-                to="/analytics"
-                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all ${
-                  isActive("/analytics")
-                    ? "bg-purple-500/20 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
-                    : "hover:bg-white/10 text-gray-400 hover:text-white"
-                }`}
-              >
-                <BarChart3
-                  className={`w-5 h-5 ${isActive("/analytics") ? "text-purple-400" : ""}`}
-                />
-                <span className="font-medium">{t('header.analytics')}</span>
-              </Link>
-            ) : (
-              <button
-                type="button"
-                onClick={handleLogin}
-                className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-all hover:bg-white/10 text-gray-400 hover:text-white"
-              >
-                <BarChart3 className="w-5 h-5" />
-                <span className="font-medium">{t('header.analytics')}</span>
-              </button>
-            )}
+            {/* 분석: 로그인 여부와 상관없이 모두 접근 가능 */}
+            <Link
+              to="/analytics"
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all ${
+                isActive("/analytics")
+                  ? "bg-purple-500/20 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                  : "hover:bg-white/10 text-gray-400 hover:text-white"
+              }`}
+            >
+              <BarChart3
+                className={`w-5 h-5 ${isActive("/analytics") ? "text-purple-400" : ""}`}
+              />
+              <span className="font-medium">{t('header.analytics')}</span>
+            </Link>
 
             {/* Language Switcher */}
             <LanguageSwitcher />
