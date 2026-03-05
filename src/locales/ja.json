@@ -1,0 +1,144 @@
+{
+  "header": {
+    "library": "ライブラリ",
+    "analytics": "分析",
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "subscription": "サブスク管理",
+    "upgrade": "アップグレード",
+    "currentPlan": "現在のプラン"
+  },
+  "home": {
+    "title": "あなたの夢を聞かせてください",
+    "description": "AIがあなたの無意識の物語を素晴らしいウェブトゥーンに変えます",
+    "inputPlaceholder": "昨夜の夢の話をしてください..."
+  },
+  "pricing": {
+    "title": "あなたの夢に合ったプランを選んでください",
+    "subtitle": "支払いはUSDで処理されます · いつでもキャンセル可能",
+    "badge": "料金プラン",
+    "free": "無料",
+    "plus": "Plus",
+    "pro": "Pro",
+    "ultra": "Ultra",
+    "recommended": "おすすめ",
+    "best": "最高",
+    "currentPlan": "現在のプラン",
+    "perMonth": "/ 月",
+    "chargedAs": "{{price}} USDで請求されます",
+    "useButton": {
+      "free": "無料で使う",
+      "plus": "Plusを使う",
+      "pro": "Proを使う",
+      "ultra": "Ultraを使う"
+    },
+    "plans": {
+      "free": {
+        "feature1": "スタンダード画像 月1回",
+        "feature2": "プレミアム画像 初回1回（会員登録後ログイン時）",
+        "feature3": "感情分析 月1回",
+        "feature4": "夢の内容相談 月1回",
+        "feature5": "画像保存 合計10枚",
+        "feature6": "健康測定 月1回"
+      },
+      "plus": {
+        "feature1": "スタンダード画像 月5回",
+        "feature2": "プレミアム画像 月1回",
+        "feature3": "感情分析 月5回",
+        "feature4": "夢の内容相談 月5回",
+        "feature5": "画像保存 合計20枚",
+        "feature6": "健康測定 月1回"
+      },
+      "pro": {
+        "feature1": "スタンダード画像 月20回",
+        "feature2": "プレミアム画像 月5回",
+        "feature3": "感情分析 無制限",
+        "feature4": "夢の内容相談 月30回",
+        "feature5": "画像保存 無制限",
+        "feature6": "健康測定 毎週提供"
+      },
+      "ultra": {
+        "feature1": "スタンダード画像 無制限",
+        "feature2": "プレミアム画像 月20回",
+        "feature3": "感情分析 無制限",
+        "feature4": "夢の内容相談 無制限",
+        "feature5": "画像保存 無制限",
+        "feature6": "健康測定 AI基盤で毎日提供"
+      }
+    },
+    "manageSubscription": "サブスク管理（キャンセル/変更）",
+    "manageDescription": "Polarサブスク管理ページでサブスクのキャンセル、プラン変更、支払い方法変更が可能です",
+    "manageAlert": "サブスク管理ページの読み込みに失敗しました。後でもう一度お試しください。",
+    "footer": "支払いはPolarで安全に処理されます · サブスクはいつでもキャンセル可能です",
+    "processing": "処理中...",
+    "syncSuccess": "既存のサブスク情報を同期しました！プランが更新されました。",
+    "syncFailed": "サブスクの同期に失敗しました。しばらくしてから再試行してください。",
+    "termsOfService": "利用規約",
+    "refundPolicy": "返金ポリシー",
+    "privacyPolicy": "プライバシーポリシー"
+  },
+  "payment": {
+    "checking": "支払い確認中...",
+    "pleaseWait": "少々お待ちください",
+    "success": "サブスクリプションが開始されました！",
+    "successDescription": "支払いが完了しました。\n新しい機能をお楽しみください。",
+    "startDreaming": "夢のストーリーを始める",
+    "goHome": "ホームに戻る",
+    "cancelled": "支払いがキャンセルされました",
+    "cancelledDescription": "いつでもサブスクリプションを開始できます。",
+    "viewPricing": "料金プランを再確認"
+  },
+  "footer": {
+    "copyright": "© 2026 Dreamics.ai. All rights reserved.",
+    "privacy": "プライバシーポリシー",
+    "terms": "利用規約",
+    "contact": "お問い合わせ"
+  },
+  "library": {
+    "title": "夢ライブラリ",
+    "filter": {
+      "all": "全て",
+      "genre": "ジャンル",
+      "emotion": "感情"
+    },
+    "empty": "まだ夢がありません",
+    "emptyDescription": "最初の夢を記録してみましょう！"
+  },
+  "analytics": {
+    "title": "夢分析",
+    "stressIndex": "ストレス指数",
+    "sleepQuality": "睡眠の質",
+    "emotionRadar": "感情レーダー",
+    "weeklyHeatmap": "週間夢ヒートマップ",
+    "coaching": "AIコーチング"
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました",
+    "retry": "再試行",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "back": "戻る"
+  },
+  "emotions": {
+    "joy": "喜び",
+    "anxiety": "不安",
+    "anger": "怒り",
+    "sadness": "悲しみ",
+    "surprise": "驚き",
+    "calm": "穏やか"
+  },
+  "genres": {
+    "fantasy": "ファンタジー",
+    "horror": "ホラー",
+    "romance": "ロマンス",
+    "adventure": "冒険",
+    "daily": "日常",
+    "mystery": "ミステリー",
+    "scifi": "SF",
+    "comedy": "コメディ"
+  }
+}

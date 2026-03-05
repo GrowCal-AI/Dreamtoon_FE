@@ -1,0 +1,144 @@
+{
+  "header": {
+    "library": "Library",
+    "analytics": "Analytics",
+    "login": "Login",
+    "logout": "Logout",
+    "subscription": "Manage Subscription",
+    "upgrade": "Upgrade",
+    "currentPlan": "Current Plan"
+  },
+  "home": {
+    "title": "Tell us your dream",
+    "description": "AI transforms your subconscious stories into amazing webtoons",
+    "inputPlaceholder": "Share your dream from last night..."
+  },
+  "pricing": {
+    "title": "Choose the plan that fits your dreams",
+    "subtitle": "Payment processed in USD · Cancel anytime",
+    "badge": "Pricing",
+    "free": "Free",
+    "plus": "Plus",
+    "pro": "Pro",
+    "ultra": "Ultra",
+    "recommended": "Recommended",
+    "best": "Best",
+    "currentPlan": "Current Plan",
+    "perMonth": "/ month",
+    "chargedAs": "Charged as {{price}} USD",
+    "useButton": {
+      "free": "Use Free",
+      "plus": "Use Plus",
+      "pro": "Use Pro",
+      "ultra": "Use Ultra"
+    },
+    "plans": {
+      "free": {
+        "feature1": "Standard Image 1 per month",
+        "feature2": "Premium Image 1st time (after signup & login)",
+        "feature3": "Emotion Analysis 1 per month",
+        "feature4": "Dream Consultation 1 per month",
+        "feature5": "Save up to 10 images",
+        "feature6": "Health Check 1 per month"
+      },
+      "plus": {
+        "feature1": "Standard Image 5 per month",
+        "feature2": "Premium Image 1 per month",
+        "feature3": "Emotion Analysis 5 per month",
+        "feature4": "Dream Consultation 5 per month",
+        "feature5": "Save up to 20 images",
+        "feature6": "Health Check 1 per month"
+      },
+      "pro": {
+        "feature1": "Standard Image 20 per month",
+        "feature2": "Premium Image 5 per month",
+        "feature3": "Unlimited Emotion Analysis",
+        "feature4": "Dream Consultation 30 per month",
+        "feature5": "Unlimited Image Storage",
+        "feature6": "Weekly Health Check"
+      },
+      "ultra": {
+        "feature1": "Unlimited Standard Images",
+        "feature2": "Premium Image 20 per month",
+        "feature3": "Unlimited Emotion Analysis",
+        "feature4": "Unlimited Dream Consultation",
+        "feature5": "Unlimited Image Storage",
+        "feature6": "AI-based Daily Health Check"
+      }
+    },
+    "manageSubscription": "Manage Subscription (Cancel/Change)",
+    "manageDescription": "Cancel subscription, change plan, or update payment method via Polar portal",
+    "manageAlert": "Failed to load subscription management page. Please try again later.",
+    "footer": "Payments securely processed through Polar · Cancel subscription anytime",
+    "processing": "Processing...",
+    "syncSuccess": "Successfully synced your subscription! Plan has been updated.",
+    "syncFailed": "Failed to sync subscription. Please try again later.",
+    "termsOfService": "Terms of Service",
+    "refundPolicy": "Refund Policy",
+    "privacyPolicy": "Privacy Policy"
+  },
+  "payment": {
+    "checking": "Checking payment...",
+    "pleaseWait": "Please wait a moment",
+    "success": "Subscription started!",
+    "successDescription": "Payment has been completed.\nYou can now enjoy all the new features.",
+    "startDreaming": "Start Dream Stories",
+    "goHome": "Back to Home",
+    "cancelled": "Payment cancelled",
+    "cancelledDescription": "You can start a subscription anytime.",
+    "viewPricing": "View Pricing Again"
+  },
+  "footer": {
+    "copyright": "© 2026 Dreamics.ai. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "contact": "Contact"
+  },
+  "library": {
+    "title": "Dream Library",
+    "filter": {
+      "all": "All",
+      "genre": "Genre",
+      "emotion": "Emotion"
+    },
+    "empty": "No dreams yet",
+    "emptyDescription": "Start recording your first dream!"
+  },
+  "analytics": {
+    "title": "Dream Analysis",
+    "stressIndex": "Stress Index",
+    "sleepQuality": "Sleep Quality",
+    "emotionRadar": "Emotion Radar",
+    "weeklyHeatmap": "Weekly Dream Heatmap",
+    "coaching": "AI Coaching"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back"
+  },
+  "emotions": {
+    "joy": "Joy",
+    "anxiety": "Anxiety",
+    "anger": "Anger",
+    "sadness": "Sadness",
+    "surprise": "Surprise",
+    "calm": "Calm"
+  },
+  "genres": {
+    "fantasy": "Fantasy",
+    "horror": "Horror",
+    "romance": "Romance",
+    "adventure": "Adventure",
+    "daily": "Daily Life",
+    "mystery": "Mystery",
+    "scifi": "Sci-Fi",
+    "comedy": "Comedy"
+  }
+}

@@ -5,6 +5,7 @@ import { Check, Sparkles, X, Loader2, Settings } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { subscriptionAPI } from "@/services/api";
 import { AxiosError } from "axios";
+import { useTranslation } from "react-i18next";
 
 // Polar Product IDs
 const POLAR_PRODUCT_IDS = {
@@ -27,75 +28,6 @@ interface Plan {
   features: { icon: string; text: string }[];
 }
 
-const PLANS: Plan[] = [
-  {
-    tier: "FREE",
-    name: "무료",
-    price: "0원",
-    priceUsd: "$0",
-    buttonLabel: "무료 사용",
-    highlight: false,
-    features: [
-      { icon: "🖼️", text: "스탠다드 이미지 월 1회" },
-      { icon: "💛", text: "프리미엄 이미지 최초 1회 (회원가입 후 로그인 시)" },
-      { icon: "🗂️", text: "감정 분석 월 1회" },
-      { icon: "🌙", text: "꿈 내용 상담 월 1회" },
-      { icon: "💾", text: "이미지 저장 총 10개" },
-      { icon: "🧪", text: "건강 측정 월 1회" },
-    ],
-  },
-  {
-    tier: "PLUS",
-    name: "Plus",
-    price: "₩1,990",
-    priceUsd: "$1.50",
-    buttonLabel: "Plus 사용",
-    highlight: false,
-    features: [
-      { icon: "🖼️", text: "스탠다드 이미지 월 5회" },
-      { icon: "💛", text: "프리미엄 이미지 월 1회" },
-      { icon: "🗂️", text: "감정 분석 월 5회" },
-      { icon: "🌙", text: "꿈 내용 상담 월 5회" },
-      { icon: "💾", text: "이미지 저장 총 20개" },
-      { icon: "🧪", text: "건강 측정 월 1회" },
-    ],
-  },
-  {
-    tier: "PRO",
-    name: "Pro",
-    price: "₩9,900",
-    priceUsd: "$6.50",
-    buttonLabel: "Pro 사용",
-    highlight: true,
-    badge: "추천",
-    features: [
-      { icon: "🖼️", text: "스탠다드 이미지 월 20회" },
-      { icon: "💛", text: "프리미엄 이미지 월 5회" },
-      { icon: "🗂️", text: "감정 분석 무제한" },
-      { icon: "🌙", text: "꿈 내용 상담 월 30회" },
-      { icon: "💾", text: "이미지 저장 총 무제한" },
-      { icon: "🧪", text: "건강 측정 매주 제공" },
-    ],
-  },
-  {
-    tier: "ULTRA",
-    name: "Ultra",
-    price: "₩19,900",
-    priceUsd: "$13.50",
-    buttonLabel: "Ultra 사용",
-    highlight: false,
-    badge: "최고",
-    features: [
-      { icon: "🖼️", text: "스탠다드 이미지 무제한" },
-      { icon: "💛", text: "프리미엄 이미지 월 20회" },
-      { icon: "🗂️", text: "감정 분석 무제한" },
-      { icon: "🌙", text: "꿈 내용 상담 무제한" },
-      { icon: "💾", text: "이미지 저장 총 무제한" },
-      { icon: "🧪", text: "건강 측정 AI 기반 매일 제공" },
-    ],
-  },
-];
-
 interface PricingPageProps {
   onClose?: () => void;
   // modal 모드일 때 true
@@ -107,12 +39,82 @@ export default function PricingPage({
   isModal = false,
 }: PricingPageProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { isLoggedIn, user, refreshUsage } = useAuthStore();
   const [loadingTier, setLoadingTier] = useState<Tier | null>(null);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   const currentTier = (user?.subscriptionTier?.toUpperCase() ?? "FREE") as Tier;
   const isPaidTier = currentTier !== "FREE";
+
+  const PLANS: Plan[] = [
+    {
+      tier: "FREE",
+      name: t('pricing.free'),
+      price: "0원",
+      priceUsd: "$0",
+      buttonLabel: t('pricing.useButton.free'),
+      highlight: false,
+      features: [
+        { icon: "🖼️", text: t('pricing.plans.free.feature1') },
+        { icon: "💛", text: t('pricing.plans.free.feature2') },
+        { icon: "🗂️", text: t('pricing.plans.free.feature3') },
+        { icon: "🌙", text: t('pricing.plans.free.feature4') },
+        { icon: "💾", text: t('pricing.plans.free.feature5') },
+        { icon: "🧪", text: t('pricing.plans.free.feature6') },
+      ],
+    },
+    {
+      tier: "PLUS",
+      name: t('pricing.plus'),
+      price: "₩1,990",
+      priceUsd: "$1.50",
+      buttonLabel: t('pricing.useButton.plus'),
+      highlight: false,
+      features: [
+        { icon: "🖼️", text: t('pricing.plans.plus.feature1') },
+        { icon: "💛", text: t('pricing.plans.plus.feature2') },
+        { icon: "🗂️", text: t('pricing.plans.plus.feature3') },
+        { icon: "🌙", text: t('pricing.plans.plus.feature4') },
+        { icon: "💾", text: t('pricing.plans.plus.feature5') },
+        { icon: "🧪", text: t('pricing.plans.plus.feature6') },
+      ],
+    },
+    {
+      tier: "PRO",
+      name: t('pricing.pro'),
+      price: "₩9,900",
+      priceUsd: "$6.50",
+      buttonLabel: t('pricing.useButton.pro'),
+      highlight: true,
+      badge: t('pricing.recommended'),
+      features: [
+        { icon: "🖼️", text: t('pricing.plans.pro.feature1') },
+        { icon: "💛", text: t('pricing.plans.pro.feature2') },
+        { icon: "🗂️", text: t('pricing.plans.pro.feature3') },
+        { icon: "🌙", text: t('pricing.plans.pro.feature4') },
+        { icon: "💾", text: t('pricing.plans.pro.feature5') },
+        { icon: "🧪", text: t('pricing.plans.pro.feature6') },
+      ],
+    },
+    {
+      tier: "ULTRA",
+      name: t('pricing.ultra'),
+      price: "₩19,900",
+      priceUsd: "$13.50",
+      buttonLabel: t('pricing.useButton.ultra'),
+      highlight: false,
+      badge: t('pricing.best'),
+      features: [
+        { icon: "🖼️", text: t('pricing.plans.ultra.feature1') },
+        { icon: "💛", text: t('pricing.plans.ultra.feature2') },
+        { icon: "🗂️", text: t('pricing.plans.ultra.feature3') },
+        { icon: "🌙", text: t('pricing.plans.ultra.feature4') },
+        { icon: "💾", text: t('pricing.plans.ultra.feature5') },
+        { icon: "🧪", text: t('pricing.plans.ultra.feature6') },
+      ],
+    },
+  ];
 
   const handleSelectPlan = async (plan: Plan) => {
     // 무료 플랜은 결제 불필요
@@ -153,13 +155,9 @@ export default function PricingPage({
         try {
           await subscriptionAPI.syncSubscription();
           await refreshUsage();
-          setSyncMessage(
-            "기존 구독 정보를 동기화했습니다! 플랜이 업데이트되었습니다.",
-          );
+          setSyncMessage(t('pricing.syncSuccess'));
         } catch {
-          setSyncMessage(
-            "구독 동기화에 실패했습니다. 잠시 후 다시 시도해주세요.",
-          );
+          setSyncMessage(t('pricing.syncFailed'));
         }
         return;
       }
@@ -205,14 +203,14 @@ export default function PricingPage({
           <div className="flex items-center justify-center gap-2 mb-3">
             <Sparkles className="w-6 h-6 text-purple-400" />
             <span className="text-purple-400 font-semibold text-sm tracking-wider uppercase">
-              요금제
+              {t('pricing.badge')}
             </span>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
-            당신의 꿈에 맞는 플랜을 선택하세요
+            {t('pricing.title')}
           </h1>
           <p className="text-gray-400 text-sm md:text-base">
-            결제는 USD로 처리됩니다 · 언제든지 취소 가능
+            {t('pricing.subtitle')}
           </p>
         </motion.div>
       </div>
@@ -264,7 +262,7 @@ export default function PricingPage({
               {/* 현재 플랜 표시 */}
               {isCurrentPlan && isLoggedIn && (
                 <div className="absolute -top-3 right-4 px-3 py-1 rounded-full text-xs font-bold bg-green-500 text-white">
-                  현재 플랜
+                  {t('pricing.currentPlan')}
                 </div>
               )}
 
@@ -277,11 +275,11 @@ export default function PricingPage({
                   {plan.price}
                 </span>
                 {plan.tier !== "FREE" && (
-                  <span className="text-gray-400 text-sm ml-1">/ 월</span>
+                  <span className="text-gray-400 text-sm ml-1">{t('pricing.perMonth')}</span>
                 )}
                 {plan.tier !== "FREE" && (
                   <div className="text-gray-500 text-xs mt-0.5">
-                    {plan.priceUsd} USD로 청구됩니다
+                    {t('pricing.chargedAs', { price: plan.priceUsd })}
                   </div>
                 )}
               </div>
@@ -316,7 +314,7 @@ export default function PricingPage({
                 {isLoading ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    처리 중...
+                    {t('pricing.processing')}
                   </>
                 ) : isCurrentPlan ? (
                   <>
@@ -347,16 +345,16 @@ export default function PricingPage({
                 window.location.href = result.portalUrl;
               } catch (error) {
                 console.error("Portal URL 조회 실패:", error);
-                alert("구독 관리 페이지를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.");
+                alert(t('pricing.manageAlert'));
               }
             }}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             <Settings size={18} />
-            <span className="font-medium">구독 관리 (취소/변경)</span>
+            <span className="font-medium">{t('pricing.manageSubscription')}</span>
           </button>
           <p className="text-gray-500 text-xs mt-3">
-            Polar 구독 관리 페이지에서 구독 취소, 플랜 변경, 결제 수단 변경이 가능합니다
+            {t('pricing.manageDescription')}
           </p>
         </motion.div>
       )}
@@ -369,8 +367,7 @@ export default function PricingPage({
         className="text-center mt-10 space-y-3"
       >
         <p className="text-gray-500 text-xs">
-          결제는 Polar를 통해 안전하게 처리됩니다 · 구독 취소는 언제든지
-          가능합니다
+          {t('pricing.footer')}
         </p>
         <div className="flex items-center justify-center gap-4 text-xs text-gray-600">
           <a
@@ -379,7 +376,7 @@ export default function PricingPage({
             rel="noopener noreferrer"
             className="hover:text-purple-400 transition-colors underline"
           >
-            서비스 이용약관
+            {t('pricing.termsOfService')}
           </a>
           <span>·</span>
           <a
@@ -388,7 +385,7 @@ export default function PricingPage({
             rel="noopener noreferrer"
             className="hover:text-purple-400 transition-colors underline"
           >
-            환불 정책
+            {t('pricing.refundPolicy')}
           </a>
           <span>·</span>
           <a
@@ -397,7 +394,7 @@ export default function PricingPage({
             rel="noopener noreferrer"
             className="hover:text-purple-400 transition-colors underline"
           >
-            개인정보 처리방침
+            {t('pricing.privacyPolicy')}
           </a>
         </div>
       </motion.div>

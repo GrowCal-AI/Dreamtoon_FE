@@ -15,6 +15,8 @@ import LogoImage from "@/asset/Dreamics.ai.svg";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "@/store/useAuthStore";
 import LoginModal from "@/components/common/LoginModal";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
 export default function Header() {
   const location = useLocation();
@@ -22,6 +24,7 @@ export default function Header() {
   const { isLoggedIn, logout, user } = useAuthStore();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const { t } = useTranslation();
 
   const tierLabel: Record<string, string> = {
     free: "Free",
@@ -86,7 +89,7 @@ export default function Header() {
                 <Library
                   className={`w-5 h-5 ${isActive("/library") ? "text-purple-400" : ""}`}
                 />
-                <span className="font-medium">라이브러리</span>
+                <span className="font-medium">{t('header.library')}</span>
               </Link>
             ) : (
               <button
@@ -95,7 +98,7 @@ export default function Header() {
                 className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-all hover:bg-white/10 text-gray-400 hover:text-white"
               >
                 <Library className="w-5 h-5" />
-                <span className="font-medium">라이브러리</span>
+                <span className="font-medium">{t('header.library')}</span>
               </button>
             )}
 
@@ -112,7 +115,7 @@ export default function Header() {
                 <BarChart3
                   className={`w-5 h-5 ${isActive("/analytics") ? "text-purple-400" : ""}`}
                 />
-                <span className="font-medium">분석</span>
+                <span className="font-medium">{t('header.analytics')}</span>
               </Link>
             ) : (
               <button
@@ -121,9 +124,12 @@ export default function Header() {
                 className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-all hover:bg-white/10 text-gray-400 hover:text-white"
               >
                 <BarChart3 className="w-5 h-5" />
-                <span className="font-medium">분석</span>
+                <span className="font-medium">{t('header.analytics')}</span>
               </button>
             )}
+
+            {/* Language Switcher */}
+            <LanguageSwitcher />
 
             {/* Login Button / Profile Icon */}
             <div className="w-[100px] flex justify-end">
@@ -142,7 +148,7 @@ export default function Header() {
                     className="flex items-center space-x-2 px-5 py-2.5 bg-white/10 border border-white/20 text-white rounded-full hover:bg-white/20 transition-all font-medium backdrop-blur-sm shadow-lg whitespace-nowrap"
                   >
                     <LogIn className="w-4 h-4" />
-                    <span>로그인</span>
+                    <span>{t('header.login')}</span>
                   </motion.button>
                 ) : (
                   <motion.div
@@ -169,7 +175,7 @@ export default function Header() {
                           {/* 현재 플랜 표시 */}
                           <div className="px-4 py-2 border-b border-white/10">
                             <span className="text-xs text-gray-500">
-                              현재 플랜
+                              {t('header.currentPlan')}
                             </span>
                             <div className="flex items-center gap-1.5 mt-0.5">
                               <Sparkles className="w-3 h-3 text-purple-400" />
@@ -186,7 +192,7 @@ export default function Header() {
                               className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
                             >
                               <Settings className="w-4 h-4 text-purple-400" />
-                              <span>구독 관리</span>
+                              <span>{t('header.subscription')}</span>
                             </button>
                           ) : (
                             <button
@@ -198,7 +204,7 @@ export default function Header() {
                               className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
                             >
                               <Sparkles className="w-4 h-4 text-purple-400" />
-                              <span>업그레이드</span>
+                              <span>{t('header.upgrade')}</span>
                             </button>
                           )}
                           <button
@@ -210,7 +216,7 @@ export default function Header() {
                             className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
                           >
                             <LogOut className="w-4 h-4" />
-                            <span>로그아웃</span>
+                            <span>{t('header.logout')}</span>
                           </button>
                         </div>
                       </>

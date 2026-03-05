@@ -1,0 +1,144 @@
+{
+  "header": {
+    "library": "资料库",
+    "analytics": "分析",
+    "login": "登录",
+    "logout": "登出",
+    "subscription": "订阅管理",
+    "upgrade": "升级",
+    "currentPlan": "当前计划"
+  },
+  "home": {
+    "title": "告诉我们你的梦",
+    "description": "AI将你的潜意识故事转化为精彩的网络漫画",
+    "inputPlaceholder": "分享你昨晚的梦..."
+  },
+  "pricing": {
+    "title": "选择适合你梦想的计划",
+    "subtitle": "以USD处理付款 · 随时取消",
+    "badge": "价格",
+    "free": "免费",
+    "plus": "Plus",
+    "pro": "Pro",
+    "ultra": "Ultra",
+    "recommended": "推荐",
+    "best": "最佳",
+    "currentPlan": "当前计划",
+    "perMonth": "/ 月",
+    "chargedAs": "按 {{price}} USD 收费",
+    "useButton": {
+      "free": "使用免费",
+      "plus": "使用Plus",
+      "pro": "使用Pro",
+      "ultra": "使用Ultra"
+    },
+    "plans": {
+      "free": {
+        "feature1": "标准图像 每月1次",
+        "feature2": "高级图像 初次1次（注册登录后）",
+        "feature3": "情绪分析 每月1次",
+        "feature4": "梦境咨询 每月1次",
+        "feature5": "保存总计10张图像",
+        "feature6": "健康检查 每月1次"
+      },
+      "plus": {
+        "feature1": "标准图像 每月5次",
+        "feature2": "高级图像 每月1次",
+        "feature3": "情绪分析 每月5次",
+        "feature4": "梦境咨询 每月5次",
+        "feature5": "保存总计20张图像",
+        "feature6": "健康检查 每月1次"
+      },
+      "pro": {
+        "feature1": "标准图像 每月20次",
+        "feature2": "高级图像 每月5次",
+        "feature3": "无限情绪分析",
+        "feature4": "梦境咨询 每月30次",
+        "feature5": "无限图像存储",
+        "feature6": "每周健康检查"
+      },
+      "ultra": {
+        "feature1": "无限标准图像",
+        "feature2": "高级图像 每月20次",
+        "feature3": "无限情绪分析",
+        "feature4": "无限梦境咨询",
+        "feature5": "无限图像存储",
+        "feature6": "AI每日健康检查"
+      }
+    },
+    "manageSubscription": "管理订阅（取消/变更）",
+    "manageDescription": "可以在Polar订阅管理页面取消订阅、更改计划或更新付款方式",
+    "manageAlert": "加载订阅管理页面失败。请稍后重试。",
+    "footer": "付款通过Polar安全处理 · 随时取消订阅",
+    "processing": "处理中...",
+    "syncSuccess": "成功同步订阅信息！计划已更新。",
+    "syncFailed": "订阅同步失败。请稍后重试。",
+    "termsOfService": "服务条款",
+    "refundPolicy": "退款政策",
+    "privacyPolicy": "隐私政策"
+  },
+  "payment": {
+    "checking": "支付确认中...",
+    "pleaseWait": "请稍等",
+    "success": "订阅已开始！",
+    "successDescription": "付款已完成。\n现在可以享受所有新功能。",
+    "startDreaming": "开始梦境故事",
+    "goHome": "返回主页",
+    "cancelled": "付款已取消",
+    "cancelledDescription": "您可以随时开始订阅。",
+    "viewPricing": "再次查看价格"
+  },
+  "footer": {
+    "copyright": "© 2026 Dreamics.ai. All rights reserved.",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "contact": "联系我们"
+  },
+  "library": {
+    "title": "梦境资料库",
+    "filter": {
+      "all": "全部",
+      "genre": "类型",
+      "emotion": "情绪"
+    },
+    "empty": "暂无梦境",
+    "emptyDescription": "开始记录你的第一个梦！"
+  },
+  "analytics": {
+    "title": "梦境分析",
+    "stressIndex": "压力指数",
+    "sleepQuality": "睡眠质量",
+    "emotionRadar": "情绪雷达",
+    "weeklyHeatmap": "每周梦境热图",
+    "coaching": "AI辅导"
+  },
+  "common": {
+    "loading": "加载中...",
+    "error": "发生错误",
+    "retry": "重试",
+    "cancel": "取消",
+    "confirm": "确认",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "back": "返回"
+  },
+  "emotions": {
+    "joy": "喜悦",
+    "anxiety": "焦虑",
+    "anger": "愤怒",
+    "sadness": "悲伤",
+    "surprise": "惊讶",
+    "calm": "平静"
+  },
+  "genres": {
+    "fantasy": "奇幻",
+    "horror": "恐怖",
+    "romance": "浪漫",
+    "adventure": "冒险",
+    "daily": "日常",
+    "mystery": "悬疑",
+    "scifi": "科幻",
+    "comedy": "喜剧"
+  }
+}

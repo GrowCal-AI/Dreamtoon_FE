@@ -4,9 +4,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CheckCircle, XCircle, Loader2, Sparkles } from 'lucide-react'
 import { useAuthStore } from '@/store/useAuthStore'
 import { subscriptionAPI } from '@/services/api'
+import { useTranslation } from 'react-i18next'
 
 export default function PaymentSuccessPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   // agent.txt: 결제 완료 후 홈 복귀 시 /subscriptions/usage 재호출
   const { refreshUsage } = useAuthStore()
@@ -51,8 +53,8 @@ export default function PaymentSuccessPage() {
         {status === 'loading' && (
           <>
             <Loader2 className="w-16 h-16 text-purple-400 animate-spin mx-auto mb-6" />
-            <h2 className="text-2xl font-bold text-white mb-2">결제 확인 중...</h2>
-            <p className="text-gray-400 text-sm">잠시만 기다려주세요</p>
+            <h2 className="text-2xl font-bold text-white mb-2">{t('payment.checking')}</h2>
+            <p className="text-gray-400 text-sm">{t('payment.pleaseWait')}</p>
           </>
         )}
 
@@ -68,11 +70,10 @@ export default function PaymentSuccessPage() {
             </motion.div>
             <div className="flex items-center justify-center gap-2 mb-3">
               <Sparkles className="w-5 h-5 text-purple-400" />
-              <h2 className="text-2xl font-bold text-white">구독이 시작되었습니다!</h2>
+              <h2 className="text-2xl font-bold text-white">{t('payment.success')}</h2>
             </div>
-            <p className="text-gray-300 text-sm mb-8 leading-relaxed">
-              결제가 완료되었습니다.<br />
-              이제 새로운 기능을 마음껏 이용하세요.
+            <p className="text-gray-300 text-sm mb-8 leading-relaxed" style={{ whiteSpace: 'pre-line' }}>
+              {t('payment.successDescription')}
             </p>
             <div className="space-y-3">
               <button
@@ -80,13 +81,13 @@ export default function PaymentSuccessPage() {
                 className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
               >
                 <Sparkles size={18} />
-                꿈 이야기 시작하기
+                {t('payment.startDreaming')}
               </button>
               <button
                 onClick={() => navigate('/')}
                 className="w-full py-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white font-medium text-sm transition-colors"
               >
-                홈으로 돌아가기
+                {t('payment.goHome')}
               </button>
             </div>
           </>
@@ -95,22 +96,22 @@ export default function PaymentSuccessPage() {
         {status === 'cancel' && (
           <>
             <XCircle className="w-16 h-16 text-gray-500 mx-auto mb-6" />
-            <h2 className="text-2xl font-bold text-white mb-2">결제가 취소되었습니다</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">{t('payment.cancelled')}</h2>
             <p className="text-gray-400 text-sm mb-8">
-              언제든지 다시 구독을 시작할 수 있습니다.
+              {t('payment.cancelledDescription')}
             </p>
             <div className="space-y-3">
               <button
                 onClick={() => navigate('/pricing')}
                 className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all border border-white/10"
               >
-                요금제 다시 보기
+                {t('payment.viewPricing')}
               </button>
               <button
                 onClick={() => navigate('/')}
                 className="w-full py-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white font-medium text-sm transition-colors"
               >
-                홈으로 돌아가기
+                {t('payment.goHome')}
               </button>
             </div>
           </>

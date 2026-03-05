@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Mic, Send } from "lucide-react";
 import Particles from "@/components/common/Particles";
 import { staggerContainer, staggerItem } from "@/utils/animations";
+import { useTranslation } from "react-i18next";
 
 // Isolated Input Component to prevent re-renders
 const DreamInput = ({
@@ -13,6 +14,7 @@ const DreamInput = ({
   onNavigate: (text: string) => void;
   onVoiceMode: () => void;
 }) => {
+  const { t } = useTranslation();
   const [inputText, setInputText] = useState("");
   const [isExiting, setIsExiting] = useState(false);
 
@@ -42,7 +44,7 @@ const DreamInput = ({
         </button>
         <input
           type="text"
-          placeholder="어젯밤 꿈 이야기를 해보세요..."
+          placeholder={t('home.inputPlaceholder')}
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyPress={(e) => {
@@ -72,6 +74,7 @@ const DreamInput = ({
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <AnimatePresence mode="wait">
@@ -106,10 +109,10 @@ export default function HomePage() {
           variants={staggerItem}
         >
           <h1 className="text-2xl md:text-5xl mb-3 md:mb-4 tracking-tighter text-[#FFffff] font-bold drop-shadow-[0_0_10px_rgba(255,250,181,0.5)] leading-tight">
-            당신의 꿈을 들려주세요
+            {t('home.title')}
           </h1>
           <p className="text-sm md:text-base text-gray-300 font-medium px-6 md:px-0 leading-relaxed">
-            무의식이 만든 이야기를 AI가 멋진 웹툰으로 만들어드립니다
+            {t('home.description')}
           </p>
         </motion.div>
 
