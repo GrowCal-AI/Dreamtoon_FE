@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { LogIn, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useDreamStore } from "@/store/useDreamStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { libraryAPI, dreamAPI } from "@/services/api";
@@ -20,6 +21,7 @@ export default function LibraryPage() {
   const { dreams } = useDreamStore();
   const { isLoggedIn } = useAuthStore();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [selectedDream, setSelectedDream] = useState<DreamEntry | null>(null);
   const [fullDreamDetail, setFullDreamDetail] = useState<DreamEntry | null>(
     null,
@@ -110,9 +112,9 @@ export default function LibraryPage() {
     return (
       <div className="min-h-full pt-20 pb-24 px-5 flex flex-col items-center justify-center bg-[#0F0C29]">
         <div className="text-center max-w-sm space-y-6">
-          <p className="text-gray-400 text-lg">로그인이 필요합니다.</p>
+          <p className="text-gray-400 text-lg">{t('library.loginRequired')}</p>
           <p className="text-gray-500 text-sm">
-            로그인 후 나만의 꿈 라이브러리를 이용할 수 있어요.
+            {t('library.loginDescription')}
           </p>
           <button
             type="button"
@@ -120,7 +122,7 @@ export default function LibraryPage() {
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold hover:opacity-90 transition-opacity"
           >
             <LogIn className="w-5 h-5" />
-            로그인하기
+            {t('library.loginButton')}
           </button>
         </div>
       </div>
@@ -137,10 +139,10 @@ export default function LibraryPage() {
           className="text-left mb-4 md:mb-8 md:text-center px-1"
         >
           <h1 className="text-2xl md:text-3xl font-bold text-[#ffffff] drop-shadow-sm mb-2 tracking-tight">
-            꿈 라이브러리
+            {t('library.title')}
           </h1>
           <p className="text-gray-400 text-sm">
-            당신이 기록한 모든 꿈을 한눈에 확인하세요
+            {t('library.emptyDescription')}
           </p>
         </motion.div>
 

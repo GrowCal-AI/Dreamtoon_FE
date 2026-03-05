@@ -14,6 +14,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import LoginModal from "@/components/common/LoginModal";
 import { EmotionType, DreamStyle } from "@/types";
 import { dreamAPI } from "@/services/api";
+import { trialTracker } from "@/utils/trialTracker";
 
 // --- Main Page ---
 
@@ -252,6 +253,28 @@ export default function DreamInputPage() {
     }
   };
   handleVoiceFlowResultRef.current = handleVoiceFlowResult;
+
+  // 페이지 접근 권한 체크
+  useEffect(() => {
+    const isTrial = (location.state as any)?.isTrial || false;
+
+    const checkAccess = async () => {
+      // 로그인 사용자는 항상 허용
+      if (isLoggedIn) return;
+
+      // 비로그인 + 체험 모드 허용
+      if (isTrial) return;
+
+      // 비로그인 + 체험 모드 아님 → 체험 가능 횟수 체크
+      const canTrial = await trialTracker.canTrial();
+      if (!canTrial) {
+        // 체험 불가능하면 홈으로 리다이렉트
+        navigate('/', { replace: true });
+      }
+    };
+
+    checkAccess();
+  }, [isLoggedIn, location.state, navigate]);
 
   // Initial Greeting and handle initial message from HomePage
   useEffect(() => {

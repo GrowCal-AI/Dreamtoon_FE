@@ -1,6 +1,7 @@
 import { useState, useEffect, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { DreamStyle } from "@/types";
 import { STYLE_LABELS, STYLE_FILTER_OPTIONS } from "../constants";
 
@@ -18,6 +19,7 @@ export const FilterBar = memo(
     onFilterStyleChange,
     onShowFavoritesChange,
   }: FilterBarProps) => {
+    const { t } = useTranslation();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     useEffect(() => {
@@ -51,7 +53,7 @@ export const FilterBar = memo(
           }`}
         >
           <Heart className={`w-4 h-4 ${showFavorites ? "fill-current" : ""}`} />
-          즐겨찾기
+          {t('library.favorites')}
         </button>
 
         <div className="relative">
@@ -65,7 +67,7 @@ export const FilterBar = memo(
           >
             <span>
               {filterStyle === "all"
-                ? "모든 스타일"
+                ? t('library.allStyles')
                 : (STYLE_LABELS[filterStyle] ?? filterStyle)}
             </span>
             <ChevronDown

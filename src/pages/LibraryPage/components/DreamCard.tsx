@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, forwardRef } from "react";
 import { motion } from "framer-motion";
 import { Heart, Calendar } from "lucide-react";
 import { DreamEntry, formatDateShort } from "@/types";
@@ -9,9 +9,10 @@ interface DreamCardProps {
   onClick: () => void;
 }
 
-export const DreamCard = memo(({ dream, onClick }: DreamCardProps) => {
+export const DreamCard = memo(forwardRef<HTMLDivElement, DreamCardProps>(({ dream, onClick }, ref) => {
   return (
     <motion.div
+      ref={ref}
       layout
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -80,7 +81,7 @@ export const DreamCard = memo(({ dream, onClick }: DreamCardProps) => {
       </div>
     </motion.div>
   );
-});
+}));
 
 DreamCard.displayName = "DreamCard";
 

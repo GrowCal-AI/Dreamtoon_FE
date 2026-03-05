@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Send, Mic, ArrowLeft, Sparkles, Loader2 } from "lucide-react";
 import { dreamAPI } from "@/services/api";
+import { useAuthStore } from "@/store/useAuthStore";
+import { trialTracker } from "@/utils/trialTracker";
+import UpgradePlanModal from "@/components/common/UpgradePlanModal";
 
 // ─── 타입 ───────────────────────────────────────────────────────────────────
 
@@ -27,14 +30,16 @@ const getGreeting = (dreamTitle: string): ChatMessage => ({
 export default function DreamChatPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isLoggedIn } = useAuthStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // location.state로 dreamId, dreamTitle, initialMessage 전달받음
+  // location.state로 dreamId, dreamTitle, initialMessage, isTrial 전달받음
   const dreamId: string | undefined = (location.state as any)?.dreamId;
   const dreamTitle: string = (location.state as any)?.dreamTitle || "나의 꿈";
   const initialMessage: string | undefined = (location.state as any)
     ?.initialMessage;
+  const isTrial: boolean = (location.state as any)?.isTrial || false;
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     const greeting = getGreeting(dreamTitle);
@@ -54,9 +59,31 @@ export default function DreamChatPage() {
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeErrorType, setUpgradeErrorType] = useState<'USAGE_LIMIT' | 'PERMISSION_DENIED' | 'SUBSCRIPTION_REQUIRED'>('USAGE_LIMIT');
 
   const recognitionRef = useRef<any>(null);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 페이지 접근 권한 체크
+  useEffect(() => {
+    const checkAccess = async () => {
+      // 로그인 사용자는 항상 허용
+      if (isLoggedIn) return;
+
+      // 비로그인 + 체험 모드 허용
+      if (isTrial) return;
+
+      // 비로그인 + 체험 모드 아님 → 체험 가능 횟수 체크
+      const canTrial = await trialTracker.canTrial();
+      if (!canTrial) {
+        // 체험 불가능하면 홈으로 리다이렉트
+        navigate('/', { replace: true });
+      }
+    };
+
+    checkAccess();
+  }, [isLoggedIn, isTrial, navigate]);
 
   // 채팅 히스토리 로드 (기존 대화 복원)
   useEffect(() => {
@@ -120,14 +147,52 @@ export default function DreamChatPage() {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMsg]);
-    } catch {
-      const errMsg: ChatMessage = {
-        id: `err-${Date.now()}`,
-        role: "ai",
-        content: "잠시 오류가 발생했어요. 다시 시도해 주세요.",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errMsg]);
+    } catch (error: any) {
+      // API 에러 분석: 사용량 초과, 권한 부족, 구독 필요 등
+      const errorMessage = error?.response?.data?.message || error?.message || "";
+      const errorCode = error?.response?.data?.code || error?.response?.data?.error || "";
+      const statusCode = error?.response?.status;
+
+      // 사용량 초과 또는 권한 관련 에러 감지
+      const isUsageLimitError =
+        statusCode === 429 ||
+        errorMessage.includes("사용량") ||
+        errorMessage.includes("usage") ||
+        errorMessage.includes("limit") ||
+        errorCode === "USAGE_LIMIT_EXCEEDED";
+
+      const isPermissionError =
+        statusCode === 403 ||
+        errorMessage.includes("권한") ||
+        errorMessage.includes("permission") ||
+        errorMessage.includes("프리미엄") ||
+        errorCode === "PERMISSION_DENIED";
+
+      const isSubscriptionError =
+        errorMessage.includes("구독") ||
+        errorMessage.includes("subscription") ||
+        errorCode === "SUBSCRIPTION_REQUIRED";
+
+      if (isUsageLimitError || isPermissionError || isSubscriptionError) {
+        // 플랜 업그레이드 모달 표시
+        if (isUsageLimitError) {
+          setUpgradeErrorType('USAGE_LIMIT');
+        } else if (isPermissionError) {
+          setUpgradeErrorType('PERMISSION_DENIED');
+        } else {
+          setUpgradeErrorType('SUBSCRIPTION_REQUIRED');
+        }
+        setShowUpgradeModal(true);
+      } else {
+        // 일반 에러 메시지
+        const errMsg: ChatMessage = {
+          id: `err-${Date.now()}`,
+          role: "ai",
+          content: "잠시 오류가 발생했어요. 다시 시도해 주세요.",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errMsg]);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -351,6 +416,13 @@ export default function DreamChatPage() {
           </button>
         </form>
       </div>
+
+      {/* Upgrade Plan Modal */}
+      <UpgradePlanModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        errorType={upgradeErrorType}
+      />
     </div>
   );
 }

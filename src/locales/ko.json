@@ -96,6 +96,11 @@
   },
   "library": {
     "title": "꿈 라이브러리",
+    "loginRequired": "로그인이 필요합니다.",
+    "loginDescription": "로그인 후 나만의 꿈 라이브러리를 이용할 수 있어요.",
+    "loginButton": "로그인하기",
+    "favorites": "즐겨찾기",
+    "allStyles": "모든 스타일",
     "filter": {
       "all": "전체",
       "genre": "장르",
@@ -106,11 +111,16 @@
   },
   "analytics": {
     "title": "꿈 분석",
+    "loginRequired": "로그인이 필요합니다.",
+    "loginDescription": "로그인 후 꿈 분석을 이용할 수 있어요.",
+    "loginButton": "로그인하기",
     "stressIndex": "스트레스 지수",
     "sleepQuality": "수면 품질",
     "emotionRadar": "감정 레이더",
     "weeklyHeatmap": "주간 꿈 히트맵",
-    "coaching": "AI 코칭"
+    "coaching": "AI 코칭",
+    "errorMessage": "데이터를 불러오는데 실패했습니다",
+    "retryButton": "다시 시도"
   },
   "common": {
     "loading": "로딩 중...",

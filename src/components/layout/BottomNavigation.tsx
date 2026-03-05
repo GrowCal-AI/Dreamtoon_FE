@@ -17,9 +17,16 @@ import LoginModal from "@/components/common/LoginModal";
 export default function BottomNavigation() {
   const location = useLocation();
   const navigate = useNavigate();
+
+  // ✅ Hook들을 early return 위로 이동
   const { isLoggedIn, user, logout } = useAuthStore();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isProfileSheetOpen, setIsProfileSheetOpen] = useState(false);
+
+  // don't show bottom nav on the dream chat page
+  if (location.pathname.startsWith("/chat")) {
+    return null;
+  }
 
   const navItems = [
     { path: "/", icon: Home, label: "홈" },

@@ -96,6 +96,11 @@
   },
   "library": {
     "title": "Dream Library",
+    "loginRequired": "Login required.",
+    "loginDescription": "Sign in to access your personal dream library.",
+    "loginButton": "Sign In",
+    "favorites": "Favorites",
+    "allStyles": "All Styles",
     "filter": {
       "all": "All",
       "genre": "Genre",
@@ -106,11 +111,16 @@
   },
   "analytics": {
     "title": "Dream Analysis",
+    "loginRequired": "Login required.",
+    "loginDescription": "Sign in to access dream analysis features.",
+    "loginButton": "Sign In",
     "stressIndex": "Stress Index",
     "sleepQuality": "Sleep Quality",
     "emotionRadar": "Emotion Radar",
     "weeklyHeatmap": "Weekly Dream Heatmap",
-    "coaching": "AI Coaching"
+    "coaching": "AI Coaching",
+    "errorMessage": "Failed to load data",
+    "retryButton": "Retry"
   },
   "common": {
     "loading": "Loading...",
