@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { libraryAPI, dreamAPI } from "@/services/api";
 import { DreamEntry, DreamStyle, formatDateShort } from "@/types";
 import GenerationResult from "@/components/common/GenerationResult";
+import AdSense from "@/components/common/AdSense";
 import { DreamCard } from "./LibraryPage/components/DreamCard";
 import { FilterBar } from "./LibraryPage/components/FilterBar";
 import { EmptyState } from "./LibraryPage/components/EmptyState";
@@ -135,6 +136,12 @@ export default function LibraryPage() {
           onFilterStyleChange={setFilterStyle}
           onShowFavoritesChange={setShowFavorites}
         />
+
+        {/* AdSense 광고 */}
+        <div className="mb-6">
+          {/* TODO: AdSense 승인 후 실제 광고 슬롯 ID로 교체하세요 (AdSense 대시보드 > 광고 단위) */}
+          <AdSense adSlot="1234567890" adFormat="horizontal" className="w-full" />
+        </div>
 
         {/* Dream Count */}
         <motion.div
