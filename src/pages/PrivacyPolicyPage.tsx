@@ -369,16 +369,58 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold mb-4 text-purple-400">13. 고지 의무</h2>
+            <h2 className="text-2xl font-bold mb-4 text-purple-400">13. Google 광고 및 쿠키 고지</h2>
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-4">
+              <p className="text-blue-200 text-sm font-semibold mb-2">Google AdSense 광고 서비스</p>
+              <p className="text-gray-300 text-sm mb-3">
+                Dreamics.ai는 Google AdSense를 통해 제3자 광고를 게재합니다. Google은 쿠키를 사용하여
+                사용자의 관심사에 맞는 광고를 표시할 수 있습니다.
+              </p>
+              <ul className="list-disc list-inside text-gray-300 text-sm space-y-1">
+                <li>광고 게재사: Google LLC (AdSense)</li>
+                <li>광고 목적: 서비스 운영 비용 충당 및 무료 기능 제공</li>
+                <li>사용 데이터: 쿠키, 브라우저 정보, 페이지 방문 기록 (Google의 개인정보처리방침 적용)</li>
+                <li>광고 개인화 거부: <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline">Google 광고 설정</a>에서 변경 가능</li>
+              </ul>
+            </div>
+            <p className="text-gray-400 text-sm">
+              Google의 개인정보 처리방침: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline">policies.google.com/privacy</a>
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold mb-4 text-purple-400">14. 콘텐츠 등급 및 이용 가능 연령</h2>
+            <div className="bg-white/5 rounded-lg p-4 mb-3">
+              <p className="text-gray-300 text-sm mb-3">
+                Dreamics.ai는 <strong>일반 이용가(전체 이용가)</strong> 서비스를 지향합니다. 다음 기준을 적용합니다:
+              </p>
+              <ul className="list-disc list-inside text-gray-300 text-sm space-y-2">
+                <li><strong>최소 이용 연령:</strong> 만 14세 이상 (보호자 동의 시 가능)</li>
+                <li><strong>콘텐츠 등급:</strong> 일반적인 꿈 이야기 및 감정 표현 허용</li>
+                <li><strong>금지 콘텐츠:</strong> 성인물, 극단적 폭력, 혐오 발언 포함 콘텐츠 생성 금지</li>
+                <li><strong>자동 필터링:</strong> 유해 키워드 자동 감지 시스템 운영</li>
+                <li><strong>신고 기능:</strong> 부적절한 콘텐츠 발견 시 support@dreamics.ai로 신고</li>
+              </ul>
+            </div>
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+              <p className="text-yellow-200 text-sm">
+                <strong>광고 정책 준수:</strong> 본 서비스는 Google AdSense 프로그램 정책을 준수하며,
+                성인 콘텐츠, 저작권 침해, 유해 콘텐츠를 포함하지 않도록 관리합니다.
+              </p>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold mb-4 text-purple-400">15. 고지 의무</h2>
             <p className="text-gray-300">
               본 개인정보 처리방침은 법령 또는 서비스 변경에 따라 수정될 수 있으며, 변경 사항은 웹사이트 공지 또는 이메일로 최소 7일 전 통지됩니다. 중요한 변경 사항은 30일 전 통지합니다.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold mb-4 text-purple-400">14. 시행일</h2>
+            <h2 className="text-2xl font-bold mb-4 text-purple-400">16. 시행일</h2>
             <p className="text-gray-300">
-              본 개인정보 처리방침은 <strong>2025년 3월 3일</strong>부터 시행됩니다.
+              본 개인정보 처리방침은 <strong>2025년 3월 3일</strong>부터 시행되며, 최종 업데이트는 <strong>2026년 3월 8일</strong>입니다.
             </p>
           </section>
         </motion.div>

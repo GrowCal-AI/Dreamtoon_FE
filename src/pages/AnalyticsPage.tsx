@@ -11,6 +11,7 @@ import {
   WeeklyDreamHeatmap,
   CoachingSection,
 } from "@/components/features/analytics";
+import AdSense from "@/components/common/AdSense";
 import { DreamDetailModal } from "./AnalyticsPage/components/DreamDetailModal";
 import { EMOTION_LABELS } from "./AnalyticsPage/constants";
 
@@ -102,6 +103,10 @@ export default function AnalyticsPage() {
           <p className="text-gray-400 text-sm">
             당신의 무의식이 보내는 신호를 해석해드립니다.
           </p>
+          {/* Phase 3: Dream Health Index 면책 고지 — 의료적 오해 방지 */}
+          <p className="text-xs text-yellow-500/70 mt-2">
+            ⚠️ 본 분석은 창작·엔터테인먼트 목적이며 의료적 진단이나 심리 치료를 대체하지 않습니다.
+          </p>
         </motion.header>
 
         {/* Sections */}
@@ -125,6 +130,12 @@ export default function AnalyticsPage() {
                 stress={analysis.stressIndex}
                 emotions={analysis.emotionDistribution}
               />
+
+              {/* AdSense 광고 */}
+              {/* TODO: AdSense 승인 후 실제 광고 슬롯 ID로 교체하세요 (AdSense 대시보드 > 광고 단위) */}
+              <div className="mt-4">
+                <AdSense adSlot="3456789012" adFormat="horizontal" className="w-full" />
+              </div>
             </>
           )}
         </motion.div>

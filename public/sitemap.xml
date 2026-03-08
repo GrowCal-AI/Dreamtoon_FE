@@ -63,7 +63,7 @@
   <!-- Privacy Policy (Required for AdSense) -->
   <url>
     <loc>https://dreamics.ai/privacy-policy</loc>
-    <lastmod>2026-03-04</lastmod>
+    <lastmod>2026-03-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -74,6 +74,14 @@
     <lastmod>2026-03-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>
+
+  <!-- Blog - Dream Psychology Guide (Content quality for AdSense) -->
+  <url>
+    <loc>https://dreamics.ai/blog</loc>
+    <lastmod>2026-03-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
 
 </urlset>

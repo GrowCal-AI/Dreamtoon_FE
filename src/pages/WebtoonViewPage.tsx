@@ -5,6 +5,7 @@ import { ArrowLeft, Heart, Download, Share2, Play, Pause } from 'lucide-react'
 import { useDreamStore } from '@/store/useDreamStore'
 import { DreamEntry, DreamScene, formatDate } from '@/types'
 import { dreamAPI } from '@/services/api'
+import AdSense from '@/components/common/AdSense'
 
 // Memoized Scene Card
 const SceneCard = memo(({ scene, index }: { scene: DreamScene; index: number }) => (
@@ -225,6 +226,12 @@ export default function WebtoonViewPage() {
           <h2 className="text-xl font-semibold mb-4 text-white">원본 꿈 내용</h2>
           <p className="text-gray-300 whitespace-pre-wrap leading-relaxed border-t border-white/10 pt-4">{dream.content}</p>
         </motion.div>
+
+        {/* AdSense 광고 */}
+        {/* TODO: AdSense 승인 후 실제 광고 슬롯 ID로 교체하세요 (AdSense 대시보드 > 광고 단위) */}
+        <div className="mt-6">
+          <AdSense adSlot="2345678901" adFormat="rectangle" className="w-full" />
+        </div>
       </div>
     </div>
   )
