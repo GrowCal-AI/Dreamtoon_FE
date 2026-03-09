@@ -22,6 +22,7 @@ const DreamGuidePage = lazy(() => import("./pages/DreamGuidePage"));
 const GalleryPage = lazy(() => import("./pages/GalleryPage"));
 const FAQPage = lazy(() => import("./pages/FAQPage"));
 const AboutPage = lazy(() => import("./pages/AboutPage"));
+const BlogPage = lazy(() => import("./pages/BlogPage"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -67,6 +68,7 @@ function App() {
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="library" element={<LibraryPage />} />
             <Route path="pricing" element={<PricingPage />} />
+            <Route path="blog" element={<BlogPage />} />
           </Route>
         </Routes>
       </Suspense>
