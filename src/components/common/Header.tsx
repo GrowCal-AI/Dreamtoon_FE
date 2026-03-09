@@ -9,6 +9,8 @@ import {
   User,
   Sparkles,
   Settings,
+  BookOpen,
+  ChevronDown,
 } from "lucide-react";
 import LogoImage from "@/asset/Dreamics.ai.svg";
 
@@ -24,6 +26,7 @@ export default function Header() {
   const { isLoggedIn, logout, user } = useAuthStore();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isResourcesOpen, setIsResourcesOpen] = useState(false);
   const { t } = useTranslation();
 
   const tierLabel: Record<string, string> = {
@@ -76,6 +79,58 @@ export default function Header() {
 
           {/* Desktop Navigation (Hidden on Mobile) */}
           <div className="hidden md:flex items-center space-x-6">
+            {/* Resources Dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsResourcesOpen((o) => !o)}
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-all hover:bg-white/10 text-gray-400 hover:text-white"
+              >
+                <BookOpen className="w-5 h-5" />
+                <span className="font-medium">Resources</span>
+                <ChevronDown className="w-4 h-4" />
+              </button>
+              {isResourcesOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    aria-hidden
+                    onClick={() => setIsResourcesOpen(false)}
+                  />
+                  <div className="absolute left-0 top-full mt-2 z-50 min-w-[200px] py-1 rounded-xl bg-[#1a1635] border border-white/10 shadow-xl">
+                    <Link
+                      to="/dream-guide"
+                      onClick={() => setIsResourcesOpen(false)}
+                      className="block px-4 py-2.5 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                    >
+                      Dream Guide
+                    </Link>
+                    <Link
+                      to="/gallery"
+                      onClick={() => setIsResourcesOpen(false)}
+                      className="block px-4 py-2.5 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                    >
+                      Webtoon Gallery
+                    </Link>
+                    <Link
+                      to="/faq"
+                      onClick={() => setIsResourcesOpen(false)}
+                      className="block px-4 py-2.5 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                    >
+                      FAQ
+                    </Link>
+                    <Link
+                      to="/about"
+                      onClick={() => setIsResourcesOpen(false)}
+                      className="block px-4 py-2.5 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                    >
+                      About
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
+
             {/* Library: 로그인 여부와 상관없이 모두 접근 가능 */}
             <Link
               to="/library"

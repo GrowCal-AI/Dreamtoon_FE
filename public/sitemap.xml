@@ -76,4 +76,36 @@
     <priority>0.5</priority>
   </url>
 
+  <!-- Dream Guide (High-quality content page) -->
+  <url>
+    <loc>https://dreamics.ai/dream-guide</loc>
+    <lastmod>2026-03-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Webtoon Gallery (High-quality content page) -->
+  <url>
+    <loc>https://dreamics.ai/gallery</loc>
+    <lastmod>2026-03-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- FAQ (High-quality content page) -->
+  <url>
+    <loc>https://dreamics.ai/faq</loc>
+    <lastmod>2026-03-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- About (High-quality content page) -->
+  <url>
+    <loc>https://dreamics.ai/about</loc>
+    <lastmod>2026-03-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
 </urlset>
